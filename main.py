@@ -1,0 +1,21 @@
+# Импорт основной библиотеки FastAPI
+from fastapi import FastAPI
+# Импорт локального веб сервера
+import uvicorn
+# Библиотека для логирования
+import logging
+# Импорт роутера для call центра
+from routers.callcenter import call_center
+
+# Объявление основного приложения
+app = FastAPI()
+
+# Настраиваем логирование
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Подключаем роутер call центра
+app.include_router(call_center, prefix="/api/v1", tags=["CallCenter"])
+
+if __name__ == "__main__":
+    uvicorn.run("main:app")
