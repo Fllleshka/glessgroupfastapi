@@ -1,8 +1,40 @@
 # Библиотеки для работы с Excel
+import os.path
 import win32com.client
 import pythoncom
 # Библиотека для работы со временем
 import datetime
+# Библиотека для работы с данными о файлах
+import openpyxl
+# Библиотека для работы с файлами
+import shutil
+
+# Импорт данных из файла
+from dates import datesforexcelfiles
+# Импорт функций логирования
+from functions.logger import logging_updatedate_file_excel
+
+# Функция копирования данный в файл для работы
+def checkupdatedatesexcel():
+    # Вычисляем время последнего изменения основного документа
+    file1 = openpyxl.load_workbook(datesforexcelfiles.pathmainfile).properties.modified
+    # Вычисляем дату последнего изменения рабочего документа
+    file2 = openpyxl.load_workbook(datesforexcelfiles.pathfile).properties.modified
+
+    # Вычисляем разницу времён
+    diff_times = file1 - file2
+    # Устанавливаем максимальное время разницы файлов
+    deltatime = datetime.timedelta(days = 0, hours = 0, minutes = 5)
+    # Если deltatime меньше разницы во времени изменения файлов
+    if deltatime < diff_times:
+        # Выполняем копирование
+        shutil.copy2(datesforexcelfiles.pathmainfile, datesforexcelfiles.pathfile, follow_symlinks = True)
+        namefile = os.path.basename(datesforexcelfiles.pathfile)
+        # Логирование обновления файла
+        logging_updatedate_file_excel(namefile)
+        return True
+    else:
+        return False
 
 # Функция импорта данных из файла для работы
 def importdatesformexcel(path, password):
@@ -64,7 +96,7 @@ def importdatesformexcel(path, password):
     # Возвращаем данные
     return listdatesforsolution
 
-# Функция для выбоки по данным
+# Функция для выборки по данным
 def chosedates(dates, allsotr):
     # Удаляем первый элемент
     del dates[0]

@@ -10,8 +10,9 @@ import datetime
 # Импорт данных
 from dates import allsotr, beeline, datesforexcelfiles
 # Импорт вспомогательных функций работы с Excel
-from functions.excel import importdatesformexcel, chosedates
-
+from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
+# Импорт функций логгирования
+from functions.logger import logging_update_call_center
 # Обьявления роутер колл центра
 call_center = APIRouter()
 
@@ -108,6 +109,7 @@ def activate_managers_on_day():
                 numbermanager = allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
                 logging.info(f"\t\tНеобходимо активировать телефон: {element[0]}\t [{element[todayday]}]\t {numbermanager}")
                 online_user_call_center(numbermanager)
+        logging_update_call_center()
         return {
             "result": "Активация менеджеров на сегодня прошла успешно",
             "data": True}
@@ -117,55 +119,16 @@ def activate_managers_on_day():
             "result": "Активации менеджеров произошла ошибка",
             "data": Exception}
 
-    '''
-    flag = True
-    massworkmanagers = []
-    try:
-        # Изменяем статусы менеджеров call центра
-        for element in managerlists:
-            if element[todayday] == "В" or element[todayday] == "O" or element[todayday] == "О" or element[todayday] == "Х":
-                #numbermanager = numbermanagers[massmanagers.index(element[0])]
-                numbermanager =  allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
-                print("\t\tНеобходимо деактивировать телефон: ", element[0], "\t[", element[todayday], "]", "'",
-                      numbermanager,
-                      "'")
-                urlforapi = urlapi + str(numbermanager) + '/agent'
-                statusrequest = requests.put(urlforapi, params=paramoffline, headers=headers)
-                if statusrequest == "<Response [403]>":
-                    flag = False
-                    print("\tЧто-то пошло не так... Нет ответа по запросу изменения статуса")
-                else:
-                    statusget = requests.get(urlforapi, headers=headers).text
-                    print("\tСтатус менеджера: ", element[0], " = ", statusget)
-            else:
-                #numbermanager = numbermanagers[massmanagers.index(element[0])]
-                numbermanager = allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
-                print("\t\tНеобходимо активировать телефон: ", element[0], "\t[", element[todayday], "]", "'",
-                      numbermanager,
-                      "'")
-                urlforapi = urlapi + str(numbermanager) + '/agent'
-                statusrequest = requests.put(urlforapi, params=paramsonline, headers=headers)
-                if statusrequest == "<Response [403]>":
-                    flag = False
-                    print("\tЧто-то пошло не так... Нет ответа по запросу изменения статуса")
-                else:
-                    # Дополнительное условие для последнего менеджера
-                    massworkmanagers.append(element[todayday])
-                    if len(massworkmanagers) == 4:
-                        # Если 3 других менеджера работают, то 4 должен быть отключён
-                        if (massworkmanagers[0] == '9.0' or massworkmanagers[0] == '10.0') and (
-                                massworkmanagers[1] == '9.0' or massworkmanagers[1] == '10.0') and (
-                                massworkmanagers[2] == '9.0' or massworkmanagers[2] == '10.0'):
-                            requests.put(urlforapi, params=paramoffline, headers=headers)
-                    statusget = requests.get(urlforapi, headers=headers).text
-                    print("\tСтатус менеджера: ", element[0], " = ", statusget)
-
-        if flag == True:
-            return "\tCall центр успешно настроен."
-        else:
-            return "\tВ работе функции произошла ошибка"
-    except Exception as e:
-        print(f"В работе call-центра произошла ошибка: {e}")
-
-    return True
-    '''
+# Ручка для копирования файла для работы
+# Без входных аргументов
+@call_center.get("/updatingexcelfile", summary="Актуализация данных в файле Excel для работы")
+def update_excel_file():
+    logging.info(f"Вызван метод [Актуализация данных в файле Excel для работы]")
+    flag = checkupdatedatesexcel()
+    if flag == True:
+        text = "Актуализация данных в файле Excel для работы прошла успешно"
+    else:
+        text = "Актуализация файла не понадобилась"
+    return {
+        "result": text,
+        "data": flag}

@@ -4,3 +4,5 @@ sqlalchemy
 aiosqlite
 requests
 pywin32
+openpyxl
+gspread
