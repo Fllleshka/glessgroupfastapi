@@ -6,3 +6,4 @@ requests
 pywin32
 openpyxl
 gspread
+pyTelegramBotApi

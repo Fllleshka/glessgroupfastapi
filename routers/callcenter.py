@@ -13,7 +13,7 @@ from dates import allsotr, beeline, datesforexcelfiles
 from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
 # Импорт функций логгирования
 from functions.logger import logging_update_call_center
-# Обьявления роутер колл центра
+# Объявления роутер колл центра
 call_center = APIRouter()
 
 # Ручка для включения сотрудника в колл центре

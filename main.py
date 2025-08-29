@@ -6,6 +6,11 @@ import uvicorn
 import logging
 # Импорт роутера для call центра
 from routers.callcenter import call_center
+# Импорт роутера для проверки актуальности файлов
+from routers.uptodatefiles import uptodatefiles
+# Импорт роутера для сбора различной статистики
+from routers.statistics import statcollection
+
 
 # Объявление основного приложения
 app = FastAPI()
@@ -16,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 # Подключаем роутер call центра
 app.include_router(call_center, prefix="/api/v1", tags=["CallCenter"])
+app.include_router(uptodatefiles, prefix="/api/v1", tags=["UpToDatesFiles"])
+app.include_router(statcollection, prefix="/api/v1", tags=["Statistics"])
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app")

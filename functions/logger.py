@@ -6,6 +6,8 @@ import gspread
 import datetime
 # Импорт данных для работы
 from dates import googlesheets, allsotr, beeline, colorsforbuttons
+# Импорт библиотеки для работы с TelegramBot
+import telebot
 # Библиотека для работы с HTTP запросами
 import requests
 
@@ -111,3 +113,24 @@ def logging_update_call_center():
         print(f"Логирование call-центра сломалось: {e}")
         time.sleep(10)
         logging_update_call_center()
+
+# Класс отправки сообщений от телеграмм бота
+class class_send_erorr_message(object):
+    # Инициализация класса
+    def __init__(self, argument, text, exception, botkey):
+        self.time = argument
+        self.function = text
+        self.exception = exception
+        self.botkey = botkey
+
+    # Функция отправки сообщения об ошибке администратору, системному администратору
+    def send_message(self):
+        # Формирование сообщения
+        message = f"Возникла проблема с функцией:\n{str(self.function)}\n\n[{str(self.time)}]\nОшибка типа:\n[{str(self.exception)}]"
+        # Токен для связи с ботом
+        bot = telebot.TeleBot(self.botkey)
+        # Отравляем сообщение на рабочий телефон администратора
+        bot.send_message(1871580124,text=message)
+        # Отравляем сообщение на личный телефон системного администратора
+        bot.send_message(1917167694, text=message)
+        return message
