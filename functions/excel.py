@@ -12,7 +12,7 @@ import shutil
 # Импорт данных из файла
 from dates import datesforexcelfiles
 # Импорт функций логирования
-from functions.logger import logging_updatedate_file_excel
+from functions.logger import class_logging_info_in_GoogleSheet
 
 # Функция копирования данный в файл для работы
 def checkupdatedatesexcel():
@@ -31,7 +31,8 @@ def checkupdatedatesexcel():
         shutil.copy2(datesforexcelfiles.pathmainfile, datesforexcelfiles.pathfile, follow_symlinks = True)
         namefile = os.path.basename(datesforexcelfiles.pathfile)
         # Логирование обновления файла
-        logging_updatedate_file_excel(namefile)
+        classlog = class_logging_info_in_GoogleSheet()
+        classlog.logging_updatedate_file_excel(namefile)
         return True
     else:
         return False

@@ -12,7 +12,7 @@ from dates import allsotr, beeline, datesforexcelfiles
 # Импорт вспомогательных функций работы с Excel
 from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
 # Импорт функций логгирования
-from functions.logger import logging_update_call_center
+from functions.logger import class_logging_info_in_GoogleSheet
 # Объявления роутер колл центра
 call_center = APIRouter()
 
@@ -109,7 +109,8 @@ def activate_managers_on_day():
                 numbermanager = allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
                 logging.info(f"\t\tНеобходимо активировать телефон: {element[0]}\t [{element[todayday]}]\t {numbermanager}")
                 online_user_call_center(numbermanager)
-        logging_update_call_center()
+        class_log = class_logging_info_in_GoogleSheet()
+        class_log.logging_update_call_center()
         return {
             "result": "Активация менеджеров на сегодня прошла успешно",
             "data": True}

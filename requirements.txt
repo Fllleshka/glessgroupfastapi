@@ -7,3 +7,4 @@ pywin32
 openpyxl
 gspread
 pyTelegramBotApi
+pillow

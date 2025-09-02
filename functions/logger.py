@@ -10,109 +10,135 @@ from dates import googlesheets, allsotr, beeline, colorsforbuttons
 import telebot
 # Библиотека для работы с HTTP запросами
 import requests
+# Библиотека для проверки кто создал файл
+import win32security
 
-# Функция записи логирования изменения файла в таблицу Google
-def logging_updatedate_file_excel(filename):
-    try:
+class class_logging_info_in_GoogleSheet:
+
+    def __init__(self):
         # Подключаемся к сервисному аккаунту
-        gc = gspread.service_account(googlesheets.CREDENTIALS_FILE)
+        self.gc = gspread.service_account(googlesheets.CREDENTIALS_FILE)
         # Подключаемся к таблице по ключу таблицы
-        table = gc.open_by_key(googlesheets.sheetkey)
+        self.table = self.gc.open_by_key(googlesheets.sheetkey)
         # Открываем нужный лист
-        worksheet = table.worksheet("LogsCallCenter")
+        self.worksheet = self.table.worksheet("LogsCallCenter")
         # Получаем номер самой последней строки
-        newstr = len(worksheet.col_values(1)) + 1
+        self.newstr = len(self.worksheet.col_values(1)) + 1
         # Вычисляем номер строки
-        newnumber = newstr - 1
-        # Определяем время выполнения операции
-        today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
-        # Определяем диапазон для обьединения ячеек
-        mergerange = "C" + str(newstr) + ":F" + str(newstr)
-        # Обьединяем ячейки да записи
-        worksheet.merge_cells(mergerange)
-        # Добавляем запись в таблицу логгирования
-        worksheet.update_cell(newstr, 1, newnumber)
-        worksheet.update_cell(newstr, 2, today)
-        text = "Файл [" + filename + "] обновлён"
-        worksheet.update_cell(newstr, 3, text)
-        # Окрашивание ячейки
-        color = {"backgroundColor": {"red": 0.94, "green": 0.9, "blue": 0.15},
-                 "horizontalAlignment": "CENTER"}
-        worksheet.format("C" + str(newstr), color)
-        # Делаем центрирование ячейки
-        worksheet.format(mergerange, {"horizontalAlignment": "CENTER"})
-    except Exception as e:
-        print(f"Логгирование call-центра сломалось: {e}")
-        time.sleep(5)
-        logging_updatedate_file_excel()
+        self.newnumber = self.newstr - 1
 
-# Функция записи логов изменения Call Center
-def logging_update_call_center():
-    try:
-        # Подключаемся к сервисному аккаунту
-        gc = gspread.service_account(googlesheets.CREDENTIALS_FILE)
-        # Подключаемся к таблице по ключу таблицы
-        table = gc.open_by_key(googlesheets.sheetkey)
-        # Открываем нужный лист
-        worksheet = table.worksheet("LogsCallCenter")
-        # Получаем номер самой последней строки
-        newstr = len(worksheet.col_values(1)) + 1
-        # Вычисляем номер строки
-        newnumber = newstr - 1
-        # Определяем время выполения операции
-        today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
-        # Выясняем данные кто работает
-        managerslist = []
-        # Выясняем статусы менеджеров
-        for element in allsotr.numbermanagers:
-            # Запрос статуса во внешнем API
-            urlforapi = beeline.urlapi + element + '/agent'
-            status = requests.get(urlforapi, headers = beeline.headers).text
-            # Добавление статуса в массив статусов
-            managerslist.append(status)
+    # Функция записи логирования изменения файла в таблицу Google
+    def logging_updatedate_file_excel(self, filename):
+        try:
+            # Определяем время выполнения операции
+            today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
+            # Определяем диапазон для объединения ячеек
+            mergerange = "C" + str(self.newstr) + ":F" + str(self.newstr)
+            # Объединяем ячейки да записи
+            self.worksheet.merge_cells(mergerange)
+            # Добавляем запись в таблицу логирования
+            self.worksheet.update_cell(self.newstr, 1, self.newnumber)
+            self.worksheet.update_cell(self.newstr, 2, today)
+            text = "Файл [" + filename + "] обновлён"
+            self.worksheet.update_cell(self.newstr, 3, text)
+            # Окрашивание ячейки
+            color = {"backgroundColor": {"red": 0.94, "green": 0.9,
+                                         "blue": 0.15},
+                     "horizontalAlignment": "CENTER"}
+            self.worksheet.format("C" + str(self.newstr), color)
+            # Делаем центрирование ячейки
+            self.worksheet.format(mergerange, {"horizontalAlignment": "CENTER"})
+        except Exception as e:
+            print(f"Логирование call-центра сломалось: {e}")
+            time.sleep(5)
+            self.logging_updatedate_file_excel(filename)
 
-        # Проверяем изменится ли call центр
-        dates = worksheet.row_values(newnumber)
-        # Если данные уже сегодня записывались, то не дублируем их
-        if dates[2] == managerslist[0] and dates[3] == managerslist[1] and dates[4] == managerslist[2] and dates[
-            5] == managerslist[3] and str(dates[1])[:10] == str(today)[:10]:
-            pass
-        # Если же эти данные не были записаны, записываем
-        else:
-            # Добавляем строку в конец файла логирования
-            worksheet.update_cell(newstr, 1, newnumber)
-            worksheet.update_cell(newstr, 2, today)
+    # Функция записи логов изменения Call Center
+    def logging_update_call_center(self):
+        try:
+            # Определяем время выполнения операции
+            today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
+            # Выясняем данные кто работает
+            managerslist = []
+            # Выясняем статусы менеджеров
+            for element in allsotr.numbermanagers:
+                # Запрос статуса во внешнем API
+                urlforapi = beeline.urlapi + element + '/agent'
+                status = requests.get(urlforapi,
+                                      headers=beeline.headers).text
+                # Добавление статуса в массив статусов
+                managerslist.append(status)
 
-            for element in range(0, 4):
-                if managerslist[element] == '"ONLINE"' or managerslist[element] == '"OFFLINE"':
-                    worksheet.update_cell(newstr, element + 3, managerslist[element])
+            # Проверяем изменится ли call центр
+            dates = self.worksheet.row_values(self.newnumber)
+            # Если данные уже сегодня записывались, то не дублируем их
+            if dates[2] == managerslist[0] and dates[3] == managerslist[
+                1] and dates[4] == managerslist[2] and dates[
+                5] == managerslist[3] and str(dates[1])[:10] == str(today)[
+                                                                :10]:
+                pass
+            # Если же эти данные не были записаны, записываем
+            else:
+                # Добавляем строку в конец файла логирования
+                self.worksheet.update_cell(self.newstr, 1, self.newnumber)
+                self.worksheet.update_cell(self.newstr, 2, today)
+
+                for element in range(0, 4):
+                    if managerslist[element] == '"ONLINE"' or managerslist[element] == '"OFFLINE"':
+                        self.worksheet.update_cell(self.newstr, element + 3, managerslist[element])
+                    else:
+                        self.worksheet.update_cell(self.newstr, element + 3,"Ошибка данных")
+
+                if managerslist[0] == '"ONLINE"':
+                    self.worksheet.format("C" + str(self.newstr), colorsforbuttons.greencolor)
                 else:
-                    worksheet.update_cell(newstr, element + 3, "Ошибка данных")
+                    self.worksheet.format("C" + str(self.newstr), colorsforbuttons.redcolor)
 
-            if managerslist[0] == '"ONLINE"':
-                worksheet.format("C" + str(newstr), colorsforbuttons.greencolor)
-            else:
-                worksheet.format("C" + str(newstr), colorsforbuttons.redcolor)
+                if managerslist[1] == '"ONLINE"':
+                    self.worksheet.format("D" + str(self.newstr), colorsforbuttons.greencolor)
+                else:
+                    self.worksheet.format("D" + str(self.newstr), colorsforbuttons.redcolor)
+                if managerslist[2] == '"ONLINE"':
+                    self.worksheet.format("E" + str(self.newstr), colorsforbuttons.greencolor)
+                else:
+                    self.worksheet.format("E" + str(self.newstr), colorsforbuttons.redcolor)
+                if managerslist[3] == '"ONLINE"':
+                    self.worksheet.format("F" + str(self.newstr), colorsforbuttons.greencolor)
+                else:
+                    self.worksheet.format("F" + str(self.newstr), colorsforbuttons.redcolor)
+                # Чтобы программа не падала из-за лимита количества запросов ставим sleep
+                time.sleep(60)
 
-            if managerslist[1] == '"ONLINE"':
-                worksheet.format("D" + str(newstr), colorsforbuttons.greencolor)
-            else:
-                worksheet.format("D" + str(newstr), colorsforbuttons.redcolor)
-            if managerslist[2] == '"ONLINE"':
-                worksheet.format("E" + str(newstr), colorsforbuttons.greencolor)
-            else:
-                worksheet.format("E" + str(newstr), colorsforbuttons.redcolor)
-            if managerslist[3] == '"ONLINE"':
-                worksheet.format("F" + str(newstr), colorsforbuttons.greencolor)
-            else:
-                worksheet.format("F" + str(newstr), colorsforbuttons.redcolor)
-            # Чтобы программа не падала из-за лимита количества запросов ставим sleep
-            time.sleep(60)
+        except Exception as e:
+            print(f"Логирование call-центра сломалось: {e}")
+            time.sleep(10)
+            self.logging_update_call_center()
 
-    except Exception as e:
-        print(f"Логирование call-центра сломалось: {e}")
-        time.sleep(10)
-        logging_update_call_center()
+    # Функция записи данных в Google Sheet файл logs
+    def logging_folders_with_photos(self, path):
+
+        sd = win32security.GetFileSecurity(path,win32security.OWNER_SECURITY_INFORMATION)
+        owner_sid = sd.GetSecurityDescriptorOwner()
+
+        print(owner_sid)
+        '''
+        # Функция для подсчёта данных по конкретно загруженным фотографиям
+        # self.statisticsphotospersonal(pathimage, owner_sid)
+
+        match (str(owner_sid)):
+            case masssotr.PySID_fleysner:
+                massnewphotos[0] += 1
+            case masssotr.PySID_kireev:
+                massnewphotos[1] += 1
+            case masssotr.PySID_pushkar:
+                massnewphotos[2] += 1
+            case masssotr.PySID_ivanov:
+                massnewphotos[3] += 1
+            case _:
+                massnewphotos[4] += 1
+        return massnewphotos
+        '''
+
 
 # Класс отправки сообщений от телеграмм бота
 class class_send_erorr_message(object):
