@@ -119,26 +119,20 @@ class class_logging_info_in_GoogleSheet:
 
         sd = win32security.GetFileSecurity(path,win32security.OWNER_SECURITY_INFORMATION)
         owner_sid = sd.GetSecurityDescriptorOwner()
-
-        print(owner_sid)
-        '''
-        # Функция для подсчёта данных по конкретно загруженным фотографиям
-        # self.statisticsphotospersonal(pathimage, owner_sid)
-
-        match (str(owner_sid)):
-            case masssotr.PySID_fleysner:
-                massnewphotos[0] += 1
-            case masssotr.PySID_kireev:
-                massnewphotos[1] += 1
-            case masssotr.PySID_pushkar:
-                massnewphotos[2] += 1
-            case masssotr.PySID_ivanov:
-                massnewphotos[3] += 1
+        print(f'Owner_SID: {owner_sid}')
+        print(f'\t\t{allsotr.fleysner.idinwindows}')
+        match(owner_sid):
+            case allsotr.fleysner.idinwindows:
+                return {'fio': allsotr.fleysner.shortname,
+                        'cell_in_table': allsotr.fleysner.dateforsheets}
+            case allsotr.kireev.idinwindows:
+                return {}
+            case allsotr.pushcar.idinwindows:
+                return {}
+            case allsotr.ivanov.idinwindows:
+                return {}
             case _:
-                massnewphotos[4] += 1
-        return massnewphotos
-        '''
-
+                return {}
 
 # Класс отправки сообщений от телеграмм бота
 class class_send_erorr_message(object):

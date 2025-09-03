@@ -68,7 +68,8 @@ def scan_folder_for_parsing():
                                 # Выясняем путь к файлу
                                 pathimage = pathfolder + "/" + elem
                                 # Функция сбора статистики по загруженным фотографиям
-                                loggingooglesheets.logging_folders_with_photos(pathimage)
+                                dateimage = loggingooglesheets.logging_folders_with_photos(pathimage)
+                                print(f'DateImage: {dateimage}')
                                 # Уменьшение веса и подгонка фотографии
                                 infoaboutphotos.append(convertimage(pathimage))
                                 # Переименование и загрузка фотографии
