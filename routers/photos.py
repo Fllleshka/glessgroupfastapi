@@ -16,9 +16,6 @@ photos = APIRouter()
 # Без входных аргументов
 @photos.get("/scanfolderforparsing", summary="Сканирование папки 'фото товара для выгрузки на сайт'")
 def scan_folder_for_parsing():
-
-    # Переменная для информации об обработанных фотографиях
-    infoaboutphotos = []
     # Класс для логгирований данных в GoogleSheets
     loggingooglesheets = class_logging_info_in_GoogleSheet()
     # Проверка наличия фотографий
@@ -67,15 +64,15 @@ def scan_folder_for_parsing():
                             else:
                                 # Выясняем путь к файлу
                                 pathimage = pathfolder + "/" + elem
-                                # Функция сбора статистики по загруженным фотографиям
-                                dateimage = loggingooglesheets.logging_folders_with_photos(pathimage)
-                                print(f'DateImage: {dateimage}')
                                 # Уменьшение веса и подгонка фотографии
-                                infoaboutphotos.append(convertimage(pathimage))
+                                convertimage(pathimage)
+                                # Функция выяснения данных о фотографии
+                                dateimage = loggingooglesheets.select_dates_from_photo(pathimage)
+                                # Функции записи данных в Google Sheets
+                                #status1 = loggingooglesheets.logging_dates_from_photo(dateimage)
+                                status2 = loggingooglesheets.logging_dates_from_photo2(dateimage)
+                                print(f"{pathimage}\t\t\t{status2}\t{status2}")
                                 # Переименование и загрузка фотографии
                                 #self.renameanduploadimage(pathimage, numberfolder)
                                 # Увеличиваем счётчик
                                 #numberfolder = numberfolder + 1
-
-    for elemment in infoaboutphotos:
-        print(elemment)
