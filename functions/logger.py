@@ -2,6 +2,7 @@
 import time
 # Библиотека для работы с файлами
 import gspread
+from gspread_formatting import Border
 # Библиотека для работы со временем
 import datetime
 # Импорт данных для работы
@@ -161,7 +162,28 @@ class class_logging_info_in_GoogleSheet:
             print(f'{today}\t{laststrF}\t\t{lastvalue}')
             # Если за сегодня есть данные, добавляем
             if today == str(lastvalue[0][0]):
-                return True
+                # Выбираем нужную ячейку
+                match dates['fio']:
+                    case allsotr.fleysner.shortname:
+                        # Получаем данные
+                        value = self.worksheetlogsphotos.get_values('G' + str(laststrF))
+                        if not value[0]:
+                            newvalue = 1
+                        else:
+                            newvalue = int(value[0][0]) + 1
+                        # Записываем данные в ячейку
+                        self.worksheetlogsphotos.update_acell('G' + str(laststrF), newvalue)
+                        solit_border = Border(top="SOLID", bottom="SOLID", left="SOLID", right="SOLID")
+                        '''
+                        self.worksheetlogsphotos.format('G' + str(laststrF), {"borders":
+                                                                                  {"top": {"style": "SOLID"},
+                                                                                   "bottom": {"style": "SOLID"},
+                                                                                   "left": {"style": "SOLID"},
+                                                                                   "right": {"style": "SOLID"}}})
+                        '''
+                        return True
+                    case _:
+                        return False
             # Создаём новую строку
             else:
                 return False
