@@ -69,9 +69,9 @@ def scan_folder_for_parsing():
                                 # Функция выяснения данных о фотографии
                                 dateimage = loggingooglesheets.select_dates_from_photo(pathimage)
                                 # Функции записи данных в Google Sheets
-                                #status1 = loggingooglesheets.logging_dates_from_photo(dateimage)
+                                status1 = loggingooglesheets.logging_dates_from_photo(dateimage)
                                 status2 = loggingooglesheets.logging_dates_from_photo2(dateimage)
-                                print(f"{pathimage}\t\t\t{status2}\t{status2}")
+                                print(f"{pathimage}\t\t\t{status1}\t{status2}")
                                 # Переименование и загрузка фотографии
                                 #self.renameanduploadimage(pathimage, numberfolder)
                                 # Увеличиваем счётчик

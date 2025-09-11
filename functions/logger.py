@@ -2,7 +2,7 @@
 import time
 # Библиотека для работы с файлами
 import gspread
-from gspread_formatting import Border
+from gspread_formatting import *
 # Библиотека для работы со временем
 import datetime
 # Импорт данных для работы
@@ -150,7 +150,22 @@ class class_logging_info_in_GoogleSheet:
         except Exception:
             return Exception
 
-    # Функция записи данных в Google Sheets
+    # Вставка данных в таблицу
+    def insertdates2(self, cell):
+        try:
+            # Получаем данные
+            value = self.worksheetlogsphotos.get_values(cell)
+            if not value[0]:
+                newvalue = 1
+            else:
+                newvalue = int(value[0][0]) + 1
+            self.worksheetlogsphotos.update_acell(cell, newvalue)
+            self.worksheetlogsphotos.format(cell, colorsforbuttons.borders)
+            return True
+        except Exception:
+            return False
+
+    # Функция записи данных внизу в Google Sheets
     def logging_dates_from_photo2(self, dates):
         try:
             # Получение числа сегодня
@@ -162,31 +177,37 @@ class class_logging_info_in_GoogleSheet:
             print(f'{today}\t{laststrF}\t\t{lastvalue}')
             # Если за сегодня есть данные, добавляем
             if today == str(lastvalue[0][0]):
+                print(dates['fio'])
                 # Выбираем нужную ячейку
                 match dates['fio']:
                     case allsotr.fleysner.shortname:
-                        # Получаем данные
-                        value = self.worksheetlogsphotos.get_values('G' + str(laststrF))
-                        if not value[0]:
-                            newvalue = 1
-                        else:
-                            newvalue = int(value[0][0]) + 1
+                        cell = 'G' + str(laststrF)
                         # Записываем данные в ячейку
-                        self.worksheetlogsphotos.update_acell('G' + str(laststrF), newvalue)
-                        solit_border = Border(top="SOLID", bottom="SOLID", left="SOLID", right="SOLID")
-                        '''
-                        self.worksheetlogsphotos.format('G' + str(laststrF), {"borders":
-                                                                                  {"top": {"style": "SOLID"},
-                                                                                   "bottom": {"style": "SOLID"},
-                                                                                   "left": {"style": "SOLID"},
-                                                                                   "right": {"style": "SOLID"}}})
-                        '''
+                        self.insertdates2(cell)
+                        return True
+                    case allsotr.ivanov.shortname:
+                        cell = 'J' + str(laststrF)
+                        # Записываем данные в ячейку
+                        self.insertdates2(cell)
+                        return True
+                    case allsotr.kireev.shortname:
+                        cell = 'H' + str(laststrF)
+                        # Записываем данные в ячейку
+                        self.insertdates2(cell)
+                        return True
+                    case allsotr.pushcar.shortname:
+                        cell = 'I' + str(laststrF)
+                        # Записываем данные в ячейку
+                        self.insertdates2(cell)
                         return True
                     case _:
                         return False
             # Создаём новую строку
             else:
-                return False
+                newstr = laststrF + 1
+                self.worksheetlogsphotos.update_cell(newstr, 6, today)
+                self.logging_dates_from_photo2(dates)
+                return True
         except Exception:
             return Exception
 
