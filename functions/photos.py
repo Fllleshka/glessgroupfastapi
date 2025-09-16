@@ -2,6 +2,8 @@
 from PIL import Image
 # Библиотека для работы с файлами
 import os
+# Библиотека для работы с файлами 2
+import shutil
 
 # Функция получения размера изображения
 def get_size_format(b, factor=1024, suffix="B"):
@@ -37,3 +39,27 @@ def convertimage(path):
     newsize = get_size_format(image_size)
     # Возвращаем данные
     return f"{path} с шириной, высотой: {olddimensions} и размером: {oldsize} была преобразована в: {newdimesions} и {newsize}"
+
+# Функция загрузки фотографий по папкам
+def renameanduploadimage(pathimage, folder):
+    lenmailfolder = 62
+    # Начинаем с переименования картинки
+    numberfolderfirst = str(pathimage)[lenmailfolder:]
+    # Если папка четырёхзначная
+    if numberfolderfirst[4] == "/":
+        numberfoldersecond = str(numberfolderfirst)[:4]
+    elif numberfolderfirst[3] == "/":
+        numberfoldersecond = str(numberfolderfirst)[:3]
+    else:
+        numberfoldersecond = str(numberfolderfirst)[:5]
+    # Название картинки
+    namepic = numberfoldersecond + str(pathimage)[-4:]
+    # Новый путь к картинке
+    convertname = str(pathimage)[
+                  :lenmailfolder] + numberfoldersecond + "/" + namepic
+    # Переименование картинки
+    os.rename(pathimage, convertname)
+
+    # Начинаем загрузку фотографии по необходимому местоположению
+    newpathfile = str(pathimage)[:29] + str(folder) + "/" + namepic
+    shutil.move(convertname, newpathfile)

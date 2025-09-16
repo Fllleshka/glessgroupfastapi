@@ -8,7 +8,7 @@ from functions.logger import class_logging_info_in_GoogleSheet
 # Импорт данных для работы с папками
 from dates import pathsfiles
 # Импорт функций для обработки фотографий
-from functions.photos import convertimage
+from functions.photos import convertimage, renameanduploadimage
 # Объявления роутер сбор статистики
 photos = APIRouter()
 
@@ -69,10 +69,24 @@ def scan_folder_for_parsing():
                                 # Функция выяснения данных о фотографии
                                 dateimage = loggingooglesheets.select_dates_from_photo(pathimage)
                                 # Функции записи данных в Google Sheets
-                                status1 = loggingooglesheets.logging_dates_from_photo(dateimage)
-                                status2 = loggingooglesheets.logging_dates_from_photo2(dateimage)
-                                print(f"{pathimage}\t\t\t{status1}\t{status2}")
+                                loggingooglesheets.logging_dates_from_photo(dateimage)
+                                loggingooglesheets.logging_dates_from_photo2(dateimage)
                                 # Переименование и загрузка фотографии
-                                #self.renameanduploadimage(pathimage, numberfolder)
+                                renameanduploadimage(pathimage, numberfolder)
                                 # Увеличиваем счётчик
-                                #numberfolder = numberfolder + 1
+                                numberfolder = numberfolder + 1
+
+
+        return {
+            "result": f"Папка для разбора фотографий полностью разобрана",
+            "data": True}
+
+# Ручка для сравнения двух папок с фотографиями между собой 1С сайт
+# Входные аргументы:
+#   Путь к первой папке
+#   Путь ко второй папке
+@photos.get("/scanfolder", summary="Сканирование папки на соответствие")
+def scan_folder(pahtmainfolder, pathsitefolder):
+    return {
+        "result": f"Папка для разбора фотографий полностью разобрана",
+        "data": True}

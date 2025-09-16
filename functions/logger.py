@@ -174,10 +174,8 @@ class class_logging_info_in_GoogleSheet:
             # Получаем последнюю ячейку в столбце F
             laststrF = len(self.worksheetlogsphotos.col_values(6))
             lastvalue = self.worksheetlogsphotos.get('F' + str(laststrF))
-            print(f'{today}\t{laststrF}\t\t{lastvalue}')
             # Если за сегодня есть данные, добавляем
             if today == str(lastvalue[0][0]):
-                print(dates['fio'])
                 # Выбираем нужную ячейку
                 match dates['fio']:
                     case allsotr.fleysner.shortname:
@@ -206,6 +204,10 @@ class class_logging_info_in_GoogleSheet:
             else:
                 newstr = laststrF + 1
                 self.worksheetlogsphotos.update_cell(newstr, 6, today)
+                # Окантовка ячеек
+                for elem in ['F', 'G', 'H', 'I', 'J']:
+                    cell = elem + str(newstr)
+                    self.worksheetlogsphotos.format(cell, colorsforbuttons.borders)
                 self.logging_dates_from_photo2(dates)
                 return True
         except Exception:
