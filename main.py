@@ -31,4 +31,4 @@ app.include_router(photos, prefix="/api/v1", tags=["Photos"])
 app.include_router(avito, prefix="/api/v1", tags=["Avito"])
 
 if __name__ == "__main__":
-    uvicorn.run("main:app")
+    uvicorn.run("main:app", reload = True)

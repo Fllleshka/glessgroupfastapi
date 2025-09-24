@@ -2,17 +2,16 @@
 import time
 # Библиотека для работы с файлами
 import gspread
-from gspread_formatting import *
 # Библиотека для работы со временем
 import datetime
-# Импорт данных для работы
-from dates import googlesheets, allsotr, beeline, colorsforbuttons
 # Импорт библиотеки для работы с TelegramBot
 import telebot
 # Библиотека для работы с HTTP запросами
 import requests
 # Библиотека для проверки кто создал файл
 import win32security
+# Импорт данных для работы
+from dates import googlesheets, allsotr, beeline, colorsforbuttons, telegrambot
 
 class class_logging_info_in_GoogleSheet:
 
@@ -213,16 +212,29 @@ class class_logging_info_in_GoogleSheet:
         except Exception:
             return Exception
 
-# Класс отправки сообщений от телеграмм бота
+# Класс оповещения в телеграмм боте
+class send_message_telegram_bot:
+    # Инициализация класса
+    def __init__(self):
+        self.botkey = telegrambot.botkey
+
+    # Функция оповещения о балансе
+    def notificationavito(self, balanse, days, textmessage):
+        # Токен для связи с ботом
+        bot = telebot.TeleBot(self.botkey)
+        bot.send_message(newusers.administrator.id, text=textmessage)
+        bot.send_message(newusers.sekachev.id, text=textmessage)
+
+# Класс отправки сообщений c ошибками от телеграмм бота
 class class_send_erorr_message(object):
     # Инициализация класса
-    def __init__(self, argument, text, exception, botkey):
+    def __init__(self, argument, text, exception):
         self.time = argument
         self.function = text
         self.exception = exception
-        self.botkey = botkey
+        self.botkey = telegrambot.botkey
 
-    # Функция отправки сообщения об ошибке администратору, системному администратору
+    # Функция отправки сообщения об ошибке в работе функции администратору, системному администратору
     def send_message(self):
         # Формирование сообщения
         message = f"Возникла проблема с функцией:\n{str(self.function)}\n\n[{str(self.time)}]\nОшибка типа:\n[{str(self.exception)}]"

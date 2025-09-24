@@ -2,7 +2,6 @@
 from fastapi import APIRouter
 # Библиотека работы с файлами
 import os
-
 # Импорт класса для логирования данный в GoogleSheet
 from functions.logger import class_logging_info_in_GoogleSheet
 # Импорт данных для работы с папками
@@ -75,8 +74,9 @@ def scan_folder_for_parsing():
                                 renameanduploadimage(pathimage, numberfolder)
                                 # Увеличиваем счётчик
                                 numberfolder = numberfolder + 1
-
-
+            # Отчищаем папку
+            os.rmdir(pathfolder)
+            print(f"Папка '{pathfolder}' и её содержимое удалены.")
         return {
             "result": f"Папка для разбора фотографий полностью разобрана",
             "data": True}

@@ -6,9 +6,13 @@ import logging
 import requests
 # Импорт библиотеки для работы с json
 import json
+# Библиотека для работы со временем
+import datetime
 
 # Импорт класса для работы с Авито
 from dates import datesforavito
+# Импорт класса для оповещения отвественных
+from functions.logger import send_message_telegram_bot
 # Объявления роутер для работы с AvitoAPI
 avito = APIRouter()
 
@@ -43,16 +47,15 @@ def get_access_token():
 
 # Ручка для получения баланса
 # Без входных аргументов
-@avito.get("/getcurrentbalance", summary="Получение баланса аккаунта авито")
+@avito.get("/getcurrentbalance", summary="Получение баланса аккаунта Авито")
 def get_current_balance():
     try:
         url = "https://api.avito.ru/cpa/v3/balanceInfo"
         Headers = dict()
-        Headers["Authorization"] = get_access_token()
+        Headers["Authorization"] = get_access_token()["data"]
         Headers["X-Source"] = "BotGless2"
         Headers["Content-Type"] = "application/json"
         response = requests.Session().post(url, headers=Headers, json={})
-        print(response)
         balance = response.json().get('balance') // 100
         return {
             "result": f"Баланс аккаунта получен",
@@ -60,4 +63,62 @@ def get_current_balance():
     except Exception as e:
         return {
             "result": f"Сбой запроса токена авторизации",
+            "data": e}
+
+# Ручка вычисления средних трат на день
+# Без входных аргументов
+@avito.get("/calcavaragedaily", summary="Вычисление средних трат на день")
+def calc_avarage_daily():
+    try:
+        # Количество средств потраченных за июнь 2025
+        spent_money = 44200
+        # Количество дней
+        count_days = 30
+        # Средние траты в день
+        average_spent = spent_money // count_days
+        return {
+            "result": f"Средние траты в день",
+            "data": average_spent}
+    except Exception as e:
+        return {
+            "result": f"Сбой вычисления средних трат на день",
+            "data": e}
+
+# Ручка принятия решения по оповещению ответственных
+# Без входных аргументов
+@avito.get("/decisionmaking", summary="Принятие решения по оповещению ответственных")
+def decision_making():
+    try:
+        # Получение баланса
+        balance = get_current_balance()
+        # Средние траты за день
+        avmoney = calc_avarage_daily()
+        # Определяем количество дней
+        countdays = int(int(balance['data']) // avmoney['data'])
+        # Текст сообщения
+        textmessage = "Баланс Авито: " + str(balance) + " ₽\n"
+        textmessage += "Баланса кошелька зватит на " + str(countdays) + " дней.\n\n"
+        # Класс оповещения отвественных
+        classnotification = send_message_telegram_bot()
+        # Время сейчас
+        today = datetime.datetime.today().strftime("%H:%M:%S")
+        # Если денег хватит на меньше чем 3 дня, оповещаем ответственных
+        if countdays <= 3:
+            # Текст оповещения
+            textmessage += "🔴Необходимо пополнить баланс.🔴"
+            classnotification.notificationavito(balance, countdays, textmessage)
+            return {
+                "result": f"Оповещение ответственных произведено",
+                "data": True}
+        # Иначе не оповещаем ответственных
+        else:
+            # Текст оповещения
+            textmessage += "🟢Нет необходимости пополнять баланс.🟢"
+            classnotification.notificationavito(balance, countdays, textmessage)
+            return {
+                "result": f"Оповещение ответственных не требуется",
+                "data": False}
+    except Exception as e:
+        return {
+            "result": f"Сбой вычисления средних трат на день",
             "data": e}
