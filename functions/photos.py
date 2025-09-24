@@ -58,8 +58,7 @@ def renameanduploadimage(pathimage, folder):
     convertname = str(pathimage)[
                   :lenmailfolder] + numberfoldersecond + "/" + namepic
     # Переименование картинки
-    os.rename(pathimage, convertname)
-
+    os.rename(pathimage, convertname.lower())
     # Начинаем загрузку фотографии по необходимому местоположению
-    newpathfile = str(pathimage)[:29] + str(folder) + "/" + namepic
+    newpathfile = str(pathimage)[:29] + str(folder) + "/" + namepic.lower()
     shutil.move(convertname, newpathfile)

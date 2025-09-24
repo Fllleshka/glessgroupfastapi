@@ -2,6 +2,9 @@
 from fastapi import APIRouter
 # Библиотека работы с файлами
 import os
+
+from sqlalchemy.testing.plugin.plugin_base import logging
+
 # Импорт класса для логирования данный в GoogleSheet
 from functions.logger import class_logging_info_in_GoogleSheet
 # Импорт данных для работы с папками
@@ -76,7 +79,6 @@ def scan_folder_for_parsing():
                                 numberfolder = numberfolder + 1
             # Отчищаем папку
             os.rmdir(pathfolder)
-            print(f"Папка '{pathfolder}' и её содержимое удалены.")
         return {
             "result": f"Папка для разбора фотографий полностью разобрана",
             "data": True}
@@ -87,6 +89,68 @@ def scan_folder_for_parsing():
 #   Путь ко второй папке
 @photos.get("/scanfolder", summary="Сканирование папки на соответствие")
 def scan_folder(pahtmainfolder, pathsitefolder):
-    return {
-        "result": f"Папка для разбора фотографий полностью разобрана",
-        "data": True}
+    try:
+        print(f"======{pahtmainfolder}======")
+        print(os.listdir(pahtmainfolder))
+        print(len(os.listdir(pahtmainfolder)))
+        print(f"======{pathsitefolder}======")
+        print(os.listdir(pathsitefolder))
+        print(len(os.listdir(pathsitefolder)))
+        print(f"======Разница======")
+        print(set(os.listdir(pahtmainfolder))-set(os.listdir(pathsitefolder)))
+        return {
+            "result": f"Сравнение папки {pahtmainfolder} и папки {pathsitefolder} завершилось успешно",
+            "data": True}
+    except Exception as Ex:
+        return {
+            "result": f"Сравнение папки {pahtmainfolder} и папки {pathsitefolder} завершилось ошибкой {Ex}",
+            "data": False}
+
+# Ручка для переименования файлов в папке в нижний регистр
+# Входной аргумент:
+#   Путь к папке
+@photos.get("/lowwerfilesfromfolder", summary="Переименование всех файлов в папке в нижний регистр")
+def lowwer_files_from_folder(pahtfolder):
+    try:
+        listdir = os.listdir(pahtfolder)
+        lenlistdir = len(listdir)
+        count = 0
+        for element in listdir:
+            if element.islower() == False:
+                oldpath = pahtfolder + "/" + element
+                newpath = pahtfolder + "/" + element.lower()
+                os.rename(oldpath, newpath)
+                count += 1
+        return {
+            "result": f"Переименование файлов в папке {pahtfolder} количеством {lenlistdir} завершилось успешно",
+            "counts": count,
+            "data": True,}
+    except Exception as Ex:
+        return {
+            "result": f"Переименование файлов в папке {pahtfolder} завершилось c ошибкой.",
+            "error": str(Ex),
+            "data": False}
+
+# Ручка для переименования всех файлов в папках
+# Без входных аргументов
+@photos.get("/renameallfilesfromfolers", summary="Переименование всех файлов во всех папках (1С, сайт)")
+def rename_all_files_from_folers():
+    path1cfolder = pathsfiles.main1cfolder
+    pathsitefolder = pathsfiles.sitefolder
+    try:
+        listdirpath1cfolder = os.listdir(path1cfolder)[:-2]
+        listdirpathsitefolder = os.listdir(pathsitefolder)
+        counts = 0
+        for element in listdirpath1cfolder:
+            counts += lowwer_files_from_folder(path1cfolder + element + "/")['counts']
+        for element in listdirpathsitefolder:
+            counts += lowwer_files_from_folder(pathsitefolder + element + "/")['counts']
+        return {
+            "result": f"Переименование во всех папках успешно завершено.",
+            "change_images": counts,
+            "data": True}
+    except Exception as Ex:
+        return {
+            "result": f"Переименование во всех папках завершилось c ошибкой.",
+            "error": str(Ex),
+            "data": False}
