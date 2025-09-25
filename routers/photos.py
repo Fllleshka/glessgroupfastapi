@@ -2,6 +2,7 @@
 from fastapi import APIRouter
 # Библиотека работы с файлами
 import os
+import shutil
 
 from sqlalchemy.testing.plugin.plugin_base import logging
 
@@ -90,17 +91,27 @@ def scan_folder_for_parsing():
 @photos.get("/scanfolder", summary="Сканирование папки на соответствие")
 def scan_folder(pahtmainfolder, pathsitefolder):
     try:
-        print(f"======{pahtmainfolder}======")
-        print(os.listdir(pahtmainfolder))
-        print(len(os.listdir(pahtmainfolder)))
-        print(f"======{pathsitefolder}======")
-        print(os.listdir(pathsitefolder))
-        print(len(os.listdir(pathsitefolder)))
-        print(f"======Разница======")
-        print(set(os.listdir(pahtmainfolder))-set(os.listdir(pathsitefolder)))
-        return {
-            "result": f"Сравнение папки {pahtmainfolder} и папки {pathsitefolder} завершилось успешно",
-            "data": True}
+        main_site = set(os.listdir(pahtmainfolder))-set(os.listdir(pathsitefolder))
+        len_main_site = len(main_site)
+        site_main = set(os.listdir(pathsitefolder))-set(os.listdir(pahtmainfolder))
+        len_site_main = len(site_main)
+        if len_main_site > 0:
+            for element in main_site:
+                oldpath = pahtmainfolder + "/" + element
+                newpath = pathsitefolder + "/" + element
+                shutil.copy(oldpath, newpath)
+            return {
+                "result": f"Копирование файлов из [{pahtmainfolder}] в [{pathsitefolder}] завершилось успешно",
+                "firstfolder": f"Количество файлов: [{len(os.listdir(pahtmainfolder))}]",
+                "secondfolder": f"Количество файлов: [{len(os.listdir(pathsitefolder))}]",
+                "processed_files": len_main_site,
+                "data": True}
+        else:
+            return {
+                "result": f"Сравнение папки [{pahtmainfolder}] и папки [{pathsitefolder}] завершилось успешно",
+                "firstfolder": f"Количество файлов: [{len(os.listdir(pahtmainfolder))}]",
+                "secondfolder": f"Количество файлов: [{len(os.listdir(pathsitefolder))}]",
+                "data": True}
     except Exception as Ex:
         return {
             "result": f"Сравнение папки {pahtmainfolder} и папки {pathsitefolder} завершилось ошибкой {Ex}",
@@ -133,7 +144,7 @@ def lowwer_files_from_folder(pahtfolder):
 
 # Ручка для переименования всех файлов в папках
 # Без входных аргументов
-@photos.get("/renameallfilesfromfolers", summary="Переименование всех файлов во всех папках (1С, сайт)")
+@photos.get("/renameallfilesfromfolers", summary="Переименование всех файлов(верхний регистр в нижний) во всех папках (1С, сайт)")
 def rename_all_files_from_folers():
     path1cfolder = pathsfiles.main1cfolder
     pathsitefolder = pathsfiles.sitefolder
