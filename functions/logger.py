@@ -219,11 +219,11 @@ class send_message_telegram_bot:
         self.botkey = telegrambot.botkey
 
     # Функция оповещения о балансе
-    def notificationavito(self, balanse, days, textmessage):
+    def notificationavito(self, textmessage):
         # Токен для связи с ботом
         bot = telebot.TeleBot(self.botkey)
-        bot.send_message(newusers.administrator.id, text=textmessage)
-        bot.send_message(newusers.sekachev.id, text=textmessage)
+        bot.send_message(allsotr.administrator.idintelegram, text=textmessage)
+        bot.send_message(allsotr.sekachev.idintelegram, text=textmessage)
 
 # Класс отправки сообщений c ошибками от телеграмм бота
 class class_send_erorr_message(object):

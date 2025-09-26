@@ -96,29 +96,26 @@ def decision_making():
         # Определяем количество дней
         countdays = int(int(balance['data']) // avmoney['data'])
         # Текст сообщения
-        textmessage = "Баланс Авито: " + str(balance) + " ₽\n"
+        textmessage = "Баланс Авито: " + str((balance['data'])) + " ₽\n"
         textmessage += "Баланса кошелька зватит на " + str(countdays) + " дней.\n\n"
-        # Класс оповещения отвественных
+        # Класс оповещения ответственных
         classnotification = send_message_telegram_bot()
         # Время сейчас
         today = datetime.datetime.today().strftime("%H:%M:%S")
-        # Если денег хватит на меньше чем 3 дня, оповещаем ответственных
+        # Если денег хватит на меньше чем 3 дня
         if countdays <= 3:
             # Текст оповещения
             textmessage += "🔴Необходимо пополнить баланс.🔴"
-            classnotification.notificationavito(balance, countdays, textmessage)
-            return {
-                "result": f"Оповещение ответственных произведено",
-                "data": True}
-        # Иначе не оповещаем ответственных
         else:
             # Текст оповещения
             textmessage += "🟢Нет необходимости пополнять баланс.🟢"
-            classnotification.notificationavito(balance, countdays, textmessage)
-            return {
-                "result": f"Оповещение ответственных не требуется",
-                "data": False}
-    except Exception as e:
+        # Оповещения отвественных
+        classnotification.notificationavito(textmessage)
+        return {
+            "result": f"Оповещение ответственных произведено",
+            "data": True}
+
+    except Exception as Ex:
         return {
             "result": f"Сбой вычисления средних трат на день",
-            "data": e}
+            "data": str(Ex)}
