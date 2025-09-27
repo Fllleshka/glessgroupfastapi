@@ -145,7 +145,7 @@ def lowwer_files_from_folder(pahtfolder):
 # Ручка для переименования всех файлов в папках
 # Без входных аргументов
 @photos.get("/renameallfilesfromfolers", summary="Переименование всех файлов(верхний регистр в нижний) во всех папках (1С, сайт)")
-def rename_all_files_from_folers():
+def rename_all_files_from_folders():
     path1cfolder = pathsfiles.main1cfolder
     pathsitefolder = pathsfiles.sitefolder
     try:
@@ -163,5 +163,35 @@ def rename_all_files_from_folers():
     except Exception as Ex:
         return {
             "result": f"Переименование во всех папках завершилось c ошибкой.",
+            "error": str(Ex),
+            "data": False}
+
+# Ручка для сопоставления всех папок между собой
+# Без входных аргументов
+@photos.get("/comparisonfolders", summary="Сопоставление папок между собой")
+def comparison_folders():
+    # Получение всех папок
+    path1cfolder = pathsfiles.main1cfolder
+    pathsitefolder = pathsfiles.sitefolder
+    try:
+        # Получение всех папок в главной папке
+        listdirpath1cfolder = os.listdir(path1cfolder)[:-2]
+        listdirpathsitefolder = os.listdir(pathsitefolder)
+        # Флаг корректности операции
+        flag = True
+        for element1c, elementsite in zip(listdirpath1cfolder, listdirpathsitefolder):
+            #print(f"Firstpath: {path1cfolder}{element1c}/")
+            firstpath = path1cfolder + element1c + "/"
+            #print(f"Secondpath: {pathsitefolder}{elementsite}/")
+            secondpath = pathsitefolder + elementsite + "/"
+            dates = scan_folder(firstpath, secondpath)
+            if dates['data'] == False:
+                flag = False
+        return {
+            "result": f"Сопоставление папок между собой завершилось успешно.",
+            "data": flag}
+    except Exception as Ex:
+        return {
+            "result": f"Сопоставление папок между собой завершилось c ошибкой.",
             "error": str(Ex),
             "data": False}
