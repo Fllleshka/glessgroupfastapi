@@ -179,16 +179,19 @@ def comparison_folders():
         listdirpathsitefolder = os.listdir(pathsitefolder)
         # Флаг корректности операции
         flag = True
+        # Текс корретной операции
+        text = "Сопоставление папок между собой завершилось успешно."
         for element1c, elementsite in zip(listdirpath1cfolder, listdirpathsitefolder):
-            #print(f"Firstpath: {path1cfolder}{element1c}/")
             firstpath = path1cfolder + element1c + "/"
-            #print(f"Secondpath: {pathsitefolder}{elementsite}/")
             secondpath = pathsitefolder + elementsite + "/"
+            # Вызов функции сравнения двух папок между собой
             dates = scan_folder(firstpath, secondpath)
             if dates['data'] == False:
+                text = "Сопоставление папок между собой завершилось c ошибкой."
                 flag = False
+        # Проверка флага корректности работы
         return {
-            "result": f"Сопоставление папок между собой завершилось успешно.",
+            "result": text,
             "data": flag}
     except Exception as Ex:
         return {

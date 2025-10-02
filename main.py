@@ -12,8 +12,10 @@ from routers.uptodatefiles import uptodatefiles
 from routers.statistics import statcollection
 # Импорт роутера для работы с фотографиями
 from routers.photos import photos
-# Импорт роутера для работы с фотографиями
+# Импорт роутера для работы с Авито
 from routers.avito import avito
+# Импорт роутера для работы с Дром
+from routers.drom import drom
 
 
 # Объявление основного приложения
@@ -29,6 +31,7 @@ app.include_router(uptodatefiles, prefix="/api/v1", tags=["UpToDatesFiles"])
 app.include_router(statcollection, prefix="/api/v1", tags=["Statistics"])
 app.include_router(photos, prefix="/api/v1", tags=["Photos"])
 app.include_router(avito, prefix="/api/v1", tags=["Avito"])
+app.include_router(drom, prefix="/api/v1", tags=["Drom"])
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload = True)
