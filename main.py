@@ -4,6 +4,9 @@ from fastapi import FastAPI
 import uvicorn
 # Библиотека для логирования
 import logging
+# Импорт роутера для проверки досутпности сервиса
+from routers.checkstatus import check_status
+
 # Импорт роутера для call центра
 from routers.callcenter import call_center
 # Импорт роутера для проверки актуальности файлов
@@ -26,6 +29,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Подключаем роутеры
+app.include_router(check_status, prefix="/api/v1", tags=["CheckStatus"])
 app.include_router(call_center, prefix="/api/v1", tags=["CallCenter"])
 app.include_router(uptodatefiles, prefix="/api/v1", tags=["UpToDatesFiles"])
 app.include_router(statcollection, prefix="/api/v1", tags=["Statistics"])
