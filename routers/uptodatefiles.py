@@ -2,7 +2,7 @@
 from fastapi import APIRouter
 # Библиотека работы с датой и временем
 import datetime
-
+import os.path
 # Импорт функции которая отвечает за принятие решения
 from functions.uptodate import getlastmodifieddate, decisionmaking
 # Импорт класса для отправки сообщения в Telegram
@@ -20,26 +20,28 @@ uptodatefiles = APIRouter()
 # Ручка для проверки актуальности файла базы данных
 @uptodatefiles.get("/uptodatedatabase", summary="Проверка актуальности базы данных")
 def up_to_date_database():
-    # Путь к файлу базы данных
-    pathtodatabase = pathsfiles.pathtodatabase
-    # Получаем сегодняшнюю дату
-    today = datetime.datetime.today()
-    # Получаем дату последнего изменения файла
-    lasttimeupdate = getlastmodifieddate(pathtodatabase)
-    # Вызываем функцию принятия решения
-    result = decisionmaking(pathtodatabase, lasttimeupdate)
-    # Оповещение ответственного лица, что файлы не обновились
-    if result == True:
-        time = today.strftime("%H:%M")
-        text = f"Файл базы данных\n[{pathtodatabase}]\nНе обновился."
-        exception = "NoException"
-        botkey = telegrambot.botkey
-        notification = class_send_erorr_message(time, text, exception, botkey)
-        notification.send_message()
-    return {"todaydata": {today.strftime("%d.%m.%Y %H:%M:%S")},
-            "lastdataupdatefile": {lasttimeupdate.strftime("%d.%m.%Y %H:%M:%S")},
-            "decision": result
-            }
+    if os.path.exists(pathsfiles.pathtodatabase):
+        # Путь к файлу базы данных
+        pathtodatabase = pathsfiles.pathtodatabase
+        # Получаем сегодняшнюю дату
+        today = datetime.datetime.today()
+        # Получаем дату последнего изменения файла
+        lasttimeupdate = getlastmodifieddate(pathtodatabase)
+        # Вызываем функцию принятия решения
+        result = decisionmaking(pathtodatabase, lasttimeupdate)
+        # Оповещение ответственного лица, что файлы не обновились
+        if result == True:
+            time = today.strftime("%H:%M")
+            text = f"Файл базы данных\n[{pathtodatabase}]\nНе обновился."
+            exception = "NoException"
+            botkey = telegrambot.botkey
+            notification = class_send_erorr_message(time, text, exception, botkey)
+            notification.send_message()
+        return {"todaydata": {today.strftime("%d.%m.%Y %H:%M:%S")},
+                "lastdataupdatefile": {lasttimeupdate.strftime("%d.%m.%Y %H:%M:%S")},
+                "decision": result}
+    else:
+        return {"decision": None}
 
 # Ручка для проверки актуальности файла дром
 @uptodatefiles.get("/uptodatedrom", summary="Проверка актуальности файла Дром")

@@ -19,7 +19,8 @@ from routers.photos import photos
 from routers.avito import avito
 # Импорт роутера для работы с Дром
 from routers.drom import drom
-
+# Импорт роутера для работы с Базой данных
+from routers.database import database
 
 # Объявление основного приложения
 app = FastAPI()
@@ -32,6 +33,7 @@ logger = logging.getLogger(__name__)
 app.include_router(check_status, prefix="/api/v1", tags=["CheckStatus"])
 app.include_router(call_center, prefix="/api/v1", tags=["CallCenter"])
 app.include_router(uptodatefiles, prefix="/api/v1", tags=["UpToDatesFiles"])
+app.include_router(database, prefix="/api/v1", tags=["DataBase"])
 app.include_router(statcollection, prefix="/api/v1", tags=["Statistics"])
 app.include_router(photos, prefix="/api/v1", tags=["Photos"])
 app.include_router(avito, prefix="/api/v1", tags=["Avito"])
