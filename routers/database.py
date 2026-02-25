@@ -2,6 +2,7 @@ import os.path
 import sqlite3
 import datetime
 import xml.etree.ElementTree
+from lxml import etree
 import tqdm
 # Импорт основной библиотеки FastAPI
 from fastapi import APIRouter
@@ -11,9 +12,14 @@ from dates import pathsfiles
 from functions.database import *
 # Импорт библиотеки для создания файлов xml
 import xml.etree.ElementTree as ET
-
+# Импорт функций для генерации прайс-листов
+from functions.exportfiles import insertdatesinxmldrom
+from functions.exportfiles import insertdatesinxmlavito
+from functions.exportfiles import insertdatesin2gis, indertdefautdatesin2gis
+from functions.exportfiles import insertdatesinvk, indertdefautdatesinvk
 # Объявления роутер колл центра
 database = APIRouter()
+
 
 # Ручка для инициализации работы с базой данных
 @database.post("/initdatabasefile",
@@ -95,6 +101,7 @@ def initdatabasefile():
         return {
             "createdate": today.strftime("%d.%m.%Y %H:%M:%S"),
             "result": "Файл успешно создан"}
+
 
 # Ручка ввода актуальных данных в базу
 @database.post("/insertnewdatesindatabase",
@@ -182,27 +189,26 @@ def insertnewdatesindatabase():
             "leadtime": leadtime.total_seconds(),
             "result": "Данные обновлены"}
 
+
 # Ручка для формирования прайс-листа Дром
 @database.post("/createxmlfiledrom",
                summary="Формируем прайс листы для Дрома",
                description="Формируются два файла: Прайс лист в наличии : dromoutputinstock.xml; прайс лист под заказ: dromoutputonrequest.xml")
 def createxmlfiledrom():
 
+    # Получаем данные из БД
     dates = selectalldatesfromdatabase()
 
     # Создаём документ
-    root = ET.Element('offers')
-    root2 = ET.Element('offers')
+    root = ET.Element('offers', date = datetime.datetime.today().strftime("%Y-%m-%d %H:%M"))
+    root2 = ET.Element('offers', date = datetime.datetime.today().strftime("%Y-%m-%d %H:%M"))
     tree = ET.ElementTree(root)
     tree2 = ET.ElementTree(root2)
-    # testdates = dates[:1000]
-    # print(testdates)
-    # for element in tqdm.tqdm(testdates):
     for element in tqdm.tqdm(dates):
         if checkavailability(element) is True:
-            insertdatesinxml(root, element)
+            insertdatesinxmldrom(root, element)
         else:
-            insertdatesinxml(root2, element)
+            insertdatesinxmldrom(root2, element)
 
     # Записываем данные в файл которые в наличии
     with open('exportfiles/drom/dromoutputinstock.xml', 'wb') as file:
@@ -219,3 +225,89 @@ def createxmlfiledrom():
 
     return {
          "result": "Файл успешно создан"}
+
+
+# Ручка для формирования прайс-листа Авито
+@database.post("/createxmlfileavito",
+               summary="Формируем прайс лист для Авито",
+               description="Формируются файл: avitooutputinstock.xml")
+def createxmlfileavito():
+
+    # Получаем данные из БД
+    dates = selectalldatesfromdatabase()
+
+    # Создаём документ
+    root = ET.Element('Ads', formatVersion="3", target="Avito.ru",
+                      date = datetime.datetime.today().strftime("%Y-%m-%d %H:%M"))
+    tree = ET.ElementTree(root)
+    for element in tqdm.tqdm(dates):
+        if checkavailability(element) is True and checkproductname(element) is True:
+            insertdatesinxmlavito(root, element)
+
+    # Записываем данные в файл которые в наличии
+    with open('exportfiles/avito/avitooutputinstock.xml', 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True)
+    with open(pathsfiles.pathtoavito, 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True)
+
+    return {
+         "result": "Файл успешно создан"}
+
+
+# Ручка для формирования прайс-листа 2gis
+@database.post("/createymlfiledoublegis",
+               summary="Формируем прайс лист для 2гис",
+               description="Формируются файл: 2gis.yml")
+def createymlfiledoublegis():
+    # Получаем данные из базы
+    dates = selectalldatesfromdatabase()
+
+    # Создаём документ
+    root = etree.Element('yml_catalog',
+                         date = datetime.datetime.today().strftime("%Y-%m-%d %H:%M"))
+    tree = etree.ElementTree(root)
+
+    # Добавляем заголовочные данные в файл
+    offers = indertdefautdatesin2gis(root)
+    for element in tqdm.tqdm(dates):
+        if checkavailability(element) is True and checkproductname(element) is True:
+            insertdatesin2gis(offers, element)
+
+    # Записываем данные в файл которые в наличии
+    with open('exportfiles/2gis/2gis.yml', 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True,
+                   doctype='<!DOCTYPE yml_catalog SYSTEM "shops.dtd">')
+    with open(pathsfiles.pathdoublegis, 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True,
+                   doctype='<!DOCTYPE yml_catalog SYSTEM "shops.dtd">')
+
+    return {
+         "result": "Файл успешно создан"}
+
+
+# Ручка для формирования прайс-листа VK
+@database.post("/createymlfilevk",
+               summary="Формируем прайс лист для группы VK",
+               description="Формируются файл: vk.xml")
+def createymlfilevk():
+    # Получаем данные из базы
+    dates = selectalldatesfromdatabase()
+
+    # Создаём документ
+    root = etree.Element('yml_catalog',
+                         date=datetime.datetime.today().strftime(
+                             "%Y-%m-%d %H:%M"))
+    tree = etree.ElementTree(root)
+
+    # Добавляем заголовочные данные в файл
+    offers = indertdefautdatesinvk(root)
+    for element in tqdm.tqdm(dates):
+        if checkavailability(element) is True and checkproductname(element) is True:
+            insertdatesinvk(offers, element)
+
+    # Записываем данные в файл которые в наличии
+    with open('exportfiles/vk/vk_.xml', 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True)
+
+    return {
+        "result": "Файл успешно создан"}

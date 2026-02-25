@@ -2,13 +2,10 @@
 import sqlite3
 # Импорт библиотеки для работы с файлами
 import os
-# Импорт библиотеки для создания файлов xml
-import xml.etree.ElementTree as ET
 
 # Импорт данных путей к файлам
 from dates import pathsfiles
-# Импорт класса для фраз к прайс-листам
-from dates import textforpricelists
+
 
 # Функция поиска в таблице данный по 1C_id
 def searchelemindatabase(id_in_1c):
@@ -100,118 +97,12 @@ def checkavailability(data):
         #print(data[16]," Товары под заказ публикуем")
         return True
 
-# Проверка нахождения файла в папке
-def checkphotoinfolder(folder, id, pathfolder):
-    namephoto1 = str(id) + ".jpg"
-    namephoto2 = str(id) + ".JPG"
-    newpath = folder + str(pathfolder) + "/"
-    if namephoto1 in os.listdir(newpath):
-        #print("Нашёл!")
-        return True
-    elif namephoto2 in os.listdir(newpath):
-        #print("Нашёл2!")
-        return True
-    else:
-        #print(f"Ищем {id}\tв\t{pathfolder}\t\t{os.listdir(newpath)}")
+# Функция проверки на услуги
+def checkproductname(data):
+    if "Услуга" in data[2]:
         return False
-
-# Функция генерации url картинок
-def createtextsphotos(id_in_1C):
-    # Путь к
-    pathmainfolder = pathsfiles.sitefolder
-    massfolders = os.listdir(pathmainfolder)
-    resulttext = ""
-    for elem in massfolders:
-        if checkphotoinfolder(pathmainfolder, id_in_1C, elem) is True:
-            resulttext += pathsfiles.pathsitefolder + str(elem) + "/" + str(id_in_1C) + ".jpg,"
-    return resulttext
-
-# Функция добавления данных в файл
-def insertdatesinxml(root, element):
-    # Добавляем дочерный элемент
-    offer = ET.SubElement(root, "offer")
-    # Номер в 1С
-    addstr(offer, "Артикул", element[1])
-    # print("\tarticle\t", element[1], "\t\t\t", )
-    # Название товара в 1С
-    addstr(offer, "Наименование_товара", element[2])
-    # print("\tname\t", element[2])
-    # Состояние новый или б/у
-    addstr(offer, "Новый_БУ", element[9])
-    # print("\tstate\t", element[9])
-    # Марка производителя
-    addstr(offer, "Марка", element[4])
-    # print("\tbrand\t", element[4])
-    # Модели автомобилей
-    addstr(offer, "Модель", element[5])
-    # print("\tmodel\t", element[5])
-    # Кузова автомобилей
-    addstr(offer, "Кузов", element[6])
-    # print("\tbody\t", element[6])
-    # Каталожный номер автомобилей
-    addstr(offer, "Номер", element[11])
-    # print("\tnumber\t", element[11])
-    # Двигатели автомобилей
-    addstr(offer, "Двигатель", element[8])
-    # print("\tengine\t", element[8])
-    # Года автомобилей
-    addstr(offer, "Год", element[7])
-    # print("\tyears\t", element[7])
-    # Года автомобилей
-    addstr(offer, "Производитель", element[10])
-    # print("\tproducer\t", element[10])
-    # Сторона автомобиля
-    addstr(offer, "L-R", element[12])
-    # print("\tside\t", element[12])
-    # Перед/зад автомобиля
-    addstr(offer, "F-R", element[13])
-    # print("\tfront_back\t", element[13])
-    # Количество штук
-    addstr(offer, "Количество", element[14])
-    # print("\tamount\t", element[14])
-    # Цена
-    if element[16] == "Под Заказ":
-        addstr(offer, "Цена", 0)
     else:
-        addstr(offer, "Цена", element[15])
-    # Наличие
-    addstr(offer, "Наличие", element[16])
-    # Описание
-    newdescription = textforpricelists.initialphrase
-    if len(element[17]) == 0:
-        newdescription += textforpricelists.middlerase
-    else:
-        newdescription += str(element[17])
-    newdescription += textforpricelists.endphrase
-    addstr(offer, "Описание", newdescription)
-    # Фотографии
-    textphoto = createtextsphotos(element[1])
-    addstr(offer, "Ссылка_на_фото", textphoto)
-    # Условие добавления данных при формировании прайс-листа под заказ
-    if element[16] == "Под Заказ":
-        addstr(offer, "supplier", "ИП Секачёв Станислав Юрьевич")
-        addstr(offer, "supplier_inn", "550200540834")
-        addstr(offer, "sklad", "г. Омск, ул. Лизы Чайкиной, д.7к3")
-        addstr(offer, "supplier_art", element[1])
+        return True
 
-# Функция добавления строки в файл
-def addstr(row, namecolumn, datecolumn):
-    data = ET.SubElement(row, namecolumn)
-    match (namecolumn):
-        case "Новый_БУ":
-            if datecolumn == "Квитанция комитента":
-                data.text = "Б/У"
-            else:
-                data.text = str(datecolumn)
-        case "L-R" | "F-R":
-            if datecolumn is None:
-                data.text = " "
-            elif datecolumn == "":
-                data.text = " "
-            else:
-                data.text = str(datecolumn)
-        case _:
-            if datecolumn == "":
-                data.text = " "
-            else:
-                data.text = str(datecolumn)
+
+

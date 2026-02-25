@@ -1,5 +1,6 @@
 # Импорт основной библиотеки FastAPI
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 # Импорт локального веб сервера
 import uvicorn
 # Библиотека для логирования
@@ -24,6 +25,7 @@ from routers.database import database
 
 # Объявление основного приложения
 app = FastAPI()
+app.mount("/static", StaticFiles(directory = "static"), name = "static")
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
