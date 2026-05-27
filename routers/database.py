@@ -19,11 +19,14 @@ from functions.exportfiles import insertdatesin2gis, indertdefautdatesin2gis
 from functions.exportfiles import insertdatesinvk, indertdefautdatesinvk
 # Объявления роутер колл центра
 database = APIRouter()
-
+# Импорт декоратора для времени выполнения
+from functions.database import executiontime
 
 # Ручка для инициализации работы с базой данных
 @database.post("/initdatabasefile",
                summary="Инициализация файла базы данных")
+# Декоратор времени выполнения функции
+@executiontime
 def initdatabasefile():
     pathfile = pathsfiles.pathtodatabase
     # Выполняем проверку наличие на базы данных
@@ -106,6 +109,8 @@ def initdatabasefile():
 # Ручка ввода актуальных данных в базу
 @database.post("/insertnewdatesindatabase",
                summary="Ввод актуальных данных в базу")
+# Декоратор времени выполнения функции
+@executiontime
 def insertnewdatesindatabase():
     # Время начала обработки
     starttime = datetime.datetime.today()
@@ -194,6 +199,8 @@ def insertnewdatesindatabase():
 @database.post("/createxmlfiledrom",
                summary="Формируем прайс листы для Дрома",
                description="Формируются два файла: Прайс лист в наличии : dromoutputinstock.xml; прайс лист под заказ: dromoutputonrequest.xml")
+# Декоратор времени выполнения функции
+@executiontime
 def createxmlfiledrom():
 
     # Получаем данные из БД
@@ -231,6 +238,8 @@ def createxmlfiledrom():
 @database.post("/createxmlfileavito",
                summary="Формируем прайс лист для Авито",
                description="Формируются файл: avitooutputinstock.xml")
+# Декоратор времени выполнения функции
+@executiontime
 def createxmlfileavito():
 
     # Получаем данные из БД
@@ -258,6 +267,8 @@ def createxmlfileavito():
 @database.post("/createymlfiledoublegis",
                summary="Формируем прайс лист для 2гис",
                description="Формируются файл: 2gis.yml")
+# Декоратор времени выполнения функции
+@executiontime
 def createymlfiledoublegis():
     # Получаем данные из базы
     dates = selectalldatesfromdatabase()
@@ -289,6 +300,8 @@ def createymlfiledoublegis():
 @database.post("/createymlfilevk",
                summary="Формируем прайс лист для группы VK",
                description="Формируются файл: vk.xml")
+# Декоратор времени выполнения функции
+@executiontime
 def createymlfilevk():
     # Получаем данные из базы
     dates = selectalldatesfromdatabase()
@@ -306,7 +319,9 @@ def createymlfilevk():
             insertdatesinvk(offers, element)
 
     # Записываем данные в файл которые в наличии
-    with open('exportfiles/vk/vk_.xml', 'wb') as file:
+    with open('exportfiles/vk/vk.xml', 'wb') as file:
+        tree.write(file, encoding='UTF-8', xml_declaration=True)
+    with open(pathsfiles.pathvkontakte, 'wb') as file:
         tree.write(file, encoding='UTF-8', xml_declaration=True)
 
     return {

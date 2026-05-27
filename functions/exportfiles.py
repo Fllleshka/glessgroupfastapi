@@ -195,7 +195,7 @@ def insertdatesin2gis(offers, element):
     name.text = element[2]
     # Добавляем фотографии
     picture = etree.SubElement(offer, 'picture')
-    picture.text = "https://" + pathsfiles.pathsitefolder + "1/" + str(element[0]) + ".jpg"
+    picture.text = pathsfiles.pathsitefolder + "1/" + str(element[0]) + ".jpg"
     # Добавляем categoryid
     categoryId = etree.SubElement(offer, 'categoryId')
     categoryId.text = "1"
@@ -233,7 +233,7 @@ def insertdatesinvk(offers, element):
     count.text = "1"
     # Добавляем фотографии
     picture = etree.SubElement(offer, 'picture')
-    picture.text = "https://" + pathsfiles.pathsitefolder + "1/" + str(
+    picture.text = pathsfiles.pathsitefolder + "1/" + str(
         element[1]) + ".jpg"
     # Добавляем описание
     description = etree.SubElement(offer, 'description')

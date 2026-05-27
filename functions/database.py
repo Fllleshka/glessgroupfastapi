@@ -2,6 +2,10 @@
 import sqlite3
 # Импорт библиотеки для работы с файлами
 import os
+# Импорт библиотеки для хранения метаданных функции
+import functools
+# Импорт библиотеки для замера времени выполнения
+import time
 
 # Импорт данных путей к файлам
 from dates import pathsfiles
@@ -104,5 +108,23 @@ def checkproductname(data):
     else:
         return True
 
+# Декоратор времени выполнения функции
+def executiontime(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # Точный замер начала
+        start_time = time.perf_counter()
+        # Вызов функции
+        result = func(*args, **kwargs)
+        # Точный замер конца
+        end_time = time.perf_counter()
+        # Вычисление времени выполнения функции
+        run_time = end_time - start_time
 
+        # Добавляем данные
+        result['start_time'] = start_time
+        result['end_time'] = end_time
+        result['run_time'] = str(int(run_time)) + " сек"
 
+        return result
+    return wrapper

@@ -42,4 +42,7 @@ app.include_router(avito, prefix="/api/v1", tags=["Avito"])
 app.include_router(drom, prefix="/api/v1", tags=["Drom"])
 
 if __name__ == "__main__":
+    # Запускаем Uvicorn сервер
     uvicorn.run("main:app", reload = True)
+    # Запускаем класс для вызовов по расписанию
+
