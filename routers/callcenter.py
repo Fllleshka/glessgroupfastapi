@@ -21,6 +21,7 @@ call_center = APIRouter()
 @call_center.get("/inclusion/{user_id}", summary="Включение сотрудника в call центре")
 def online_user_call_center(user_id: str):
     logging.info(f"Вызван метод [Включение сотрудника в call центре]: {user_id}")
+
     # Поиск id в массиве коротких номеров менеджеров
     if user_id in allsotr.numbermanagers:
         # Запрос статуса во внешнем API

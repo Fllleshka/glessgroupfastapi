@@ -12,11 +12,16 @@ from dates import pathsfiles
 from functions.database import *
 # Импорт библиотеки для создания файлов xml
 import xml.etree.ElementTree as ET
+# Импорт валидатора данных (pydantic)
+from pydantic import BaseModel
 # Импорт функций для генерации прайс-листов
 from functions.exportfiles import insertdatesinxmldrom
 from functions.exportfiles import insertdatesinxmlavito
 from functions.exportfiles import insertdatesin2gis, indertdefautdatesin2gis
 from functions.exportfiles import insertdatesinvk, indertdefautdatesinvk
+
+
+
 # Объявления роутер колл центра
 database = APIRouter()
 # Импорт декоратора для времени выполнения
@@ -31,7 +36,7 @@ def initdatabasefile():
     pathfile = pathsfiles.pathtodatabase
     # Выполняем проверку наличие на базы данных
     if os.path.exists(pathfile):
-        return {"result": True}
+        return {"result": "Файл не нуждается в создании"}
     else:
         # Создаём базу данных
         file = open(pathfile, "w+")
@@ -112,9 +117,6 @@ def initdatabasefile():
 # Декоратор времени выполнения функции
 @executiontime
 def insertnewdatesindatabase():
-    # Время начала обработки
-    starttime = datetime.datetime.today()
-
     # Подключаемся к базе данных
     connection = sqlite3.connect(pathsfiles.pathtodatabase)
     cursor = connection.cursor()
@@ -186,13 +188,7 @@ def insertnewdatesindatabase():
             print(list_dates)
             insertintodatabasenewrow(connection, cursor, list_dates)
 
-    endtime = datetime.datetime.now()
-    leadtime = datetime.datetime.now() - starttime
-
-    return {"startfunction": starttime.strftime("%H:%M:%S"),
-            "endtime": endtime.strftime("%H:%M:%S"),
-            "leadtime": leadtime.total_seconds(),
-            "result": "Данные обновлены"}
+    return {"result": "Данные обновлены"}
 
 
 # Ручка для формирования прайс-листа Дром
@@ -299,7 +295,7 @@ def createymlfiledoublegis():
 # Ручка для формирования прайс-листа VK
 @database.post("/createymlfilevk",
                summary="Формируем прайс лист для группы VK",
-               description="Формируются файл: vk.xml")
+               description="Формируются файл: vk.xml<br>Формат следующий:\n\n")
 # Декоратор времени выполнения функции
 @executiontime
 def createymlfilevk():

@@ -12,7 +12,7 @@ def getlastmodifieddate(file_path):
         return None
 
 # Функция принятия решения
-def decisionmaking(pathfile, lasttimeupdate):
+def decisionmaking(lasttimeupdate):
     # Получаем сегодняшнюю дату
     today = datetime.datetime.today()
     # Максимальное время без обновления

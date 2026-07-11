@@ -218,7 +218,7 @@ def insertdatesinvk(offers, element):
     offer = etree.SubElement(offers, 'offer', available="true", id=str(element[1]), group_id = "1")
     # Добавляем цену
     price = etree.SubElement(offer, 'price')
-    price.text = str(element[3])
+    price.text = str(element[15])
     # Добавляем валюту
     currency = etree.SubElement(offer, 'currencyId')
     currency.text = 'RUB'

@@ -232,6 +232,7 @@ class class_send_erorr_message(object):
         self.time = argument
         self.function = text
         self.exception = exception
+        self.exception = exception
         self.botkey = telegrambot.botkey
 
     # Функция отправки сообщения об ошибке в работе функции администратору, системному администратору
@@ -241,7 +242,7 @@ class class_send_erorr_message(object):
         # Токен для связи с ботом
         bot = telebot.TeleBot(self.botkey)
         # Отравляем сообщение на рабочий телефон администратора
-        bot.send_message(1871580124,text=message)
+        bot.send_message(allsotr.administrator.idintelegram,text=message)
         # Отравляем сообщение на личный телефон системного администратора
-        bot.send_message(1917167694, text=message)
+        bot.send_message(allsotr.fleysner.idintelegram, text=message)
         return message
