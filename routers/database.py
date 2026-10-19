@@ -21,7 +21,6 @@ from functions.exportfiles import insertdatesin2gis, indertdefautdatesin2gis
 from functions.exportfiles import insertdatesinvk, indertdefautdatesinvk
 
 
-
 # Объявления роутер колл центра
 database = APIRouter()
 # Импорт декоратора для времени выполнения
@@ -30,7 +29,6 @@ from functions.database import executiontime
 # Ручка для инициализации работы с базой данных
 @database.post("/initdatabasefile",
                summary="Инициализация файла базы данных")
-# Декоратор времени выполнения функции
 @executiontime
 def initdatabasefile():
     pathfile = pathsfiles.pathtodatabase
@@ -117,78 +115,82 @@ def initdatabasefile():
 # Декоратор времени выполнения функции
 @executiontime
 def insertnewdatesindatabase():
-    # Подключаемся к базе данных
-    connection = sqlite3.connect(pathsfiles.pathtodatabase)
-    cursor = connection.cursor()
 
-    # Разбор файла
-    tree = xml.etree.ElementTree.parse(pathsfiles.exportfilefrom1c)
-    root = tree.getroot()
-    mass = root.iter()
-    next(mass)
+    try:
+        # Подключаемся к базе данных
+        connection = sqlite3.connect(pathsfiles.pathtodatabase)
+        cursor = connection.cursor()
 
-    # Формирование данных и вставка их в базу данных
-    for elem in tqdm.tqdm(mass, desc='Processing'):
-        list_dates = []
-        id_in_1c = elem.attrib.get('ID')
-        list_dates.append(id_in_1c)
-        #name = elem.attrib.get('Наименование')
-        list_dates.append(elem.attrib.get('Наименование'))
-        #tab = elem.attrib.get('Вкладка')
-        list_dates.append(elem.attrib.get('Вкладка'))
-        #brand = elem.attrib.get('Марка')
-        list_dates.append(elem.attrib.get('Марка'))
-        #model = elem.attrib.get('Модель')
-        list_dates.append(elem.attrib.get('Модель'))
-        #body = elem.attrib.get('Кузов')
-        list_dates.append(elem.attrib.get('Кузов'))
-        #years = elem.attrib.get('Год')
-        list_dates.append(elem.attrib.get('Год'))
-        #engine = elem.attrib.get('Двигатель')
-        list_dates.append(elem.attrib.get('Двигатель'))
-        #state = elem.attrib.get('НовыйИли')
-        list_dates.append(elem.attrib.get('НовыйИли'))
-        #producer = elem.attrib.get('Производитель')
-        list_dates.append(elem.attrib.get('Производитель'))
-        #number = elem.attrib.get('Номер')
-        list_dates.append(elem.attrib.get('Номер'))
-        #side = elem.attrib.get('L - R')
-        list_dates.append(elem.attrib.get('L - R'))
-        #front_back = elem.attrib.get('F - R')
-        list_dates.append(elem.attrib.get('F - R'))
-        #amount = elem.attrib.get('Количество')
-        list_dates.append(elem.attrib.get('Количество'))
-        #price = elem.attrib.get('Цена')
-        list_dates.append(elem.attrib.get('Цена'))
-        #availability = elem.attrib.get('Наличие')
-        list_dates.append(elem.attrib.get('Наличие'))
-        #direction = elem.attrib.get('Описание')
-        list_dates.append(elem.attrib.get('Описание'))
-        #new = elem.attrib.get('Новинка')
-        list_dates.append(elem.attrib.get('Новинка'))
-        #name_internet = elem.attrib.get('НаименованиеИнтернет')
-        list_dates.append(elem.attrib.get('НаименованиеИнтернет'))
-        #up_down = elem.attrib.get('ВерхНиз')
-        list_dates.append(elem.attrib.get('ВерхНиз'))
-        #transmission = elem.attrib.get('КПП')
-        list_dates.append(elem.attrib.get('КПП'))
-        #drive = elem.attrib.get('WD')
-        list_dates.append(elem.attrib.get('WD'))
-        #type_body = elem.attrib.get('ВидКузова')
-        list_dates.append(elem.attrib.get('ВидКузова'))
-        #synonim = elem.attrib.get('Синоним')
-        list_dates.append(elem.attrib.get('Синоним'))
-        #print(f"{id_in_1c}|{name}|{tab}|{brand}|{model}|{body}|{years}|{engine}|{state}|{producer}|{number}|{side}|{front_back}|{amount}|{price}|{availability}|{direction}|{new}|{name_internet}|{up_down}|{transmission}|{drive}|{type_body}|{synonim}")
-        if searchelemindatabase(id_in_1c) == True:
-            #print("Необходимо сделать UPDATE")
-            updateindatabaserow(connection, cursor, list_dates)
-        else:
+        # Разбор файла
+        tree = xml.etree.ElementTree.parse(pathsfiles.exportfilefrom1c)
+        root = tree.getroot()
+        mass = root.iter()
+        next(mass)
 
-            print("Необходимо сделать INSERT")
-            print(list_dates)
-            insertintodatabasenewrow(connection, cursor, list_dates)
+        # Формирование данных и вставка их в базу данных
+        for elem in tqdm.tqdm(mass, desc='Processing'):
+            list_dates = []
+            id_in_1c = elem.attrib.get('ID')
+            list_dates.append(id_in_1c)
+            #name = elem.attrib.get('Наименование')
+            list_dates.append(elem.attrib.get('Наименование'))
+            #tab = elem.attrib.get('Вкладка')
+            list_dates.append(elem.attrib.get('Вкладка'))
+            #brand = elem.attrib.get('Марка')
+            list_dates.append(elem.attrib.get('Марка'))
+            #model = elem.attrib.get('Модель')
+            list_dates.append(elem.attrib.get('Модель'))
+            #body = elem.attrib.get('Кузов')
+            list_dates.append(elem.attrib.get('Кузов'))
+            #years = elem.attrib.get('Год')
+            list_dates.append(elem.attrib.get('Год'))
+            #engine = elem.attrib.get('Двигатель')
+            list_dates.append(elem.attrib.get('Двигатель'))
+            #state = elem.attrib.get('НовыйИли')
+            list_dates.append(elem.attrib.get('НовыйИли'))
+            #producer = elem.attrib.get('Производитель')
+            list_dates.append(elem.attrib.get('Производитель'))
+            #number = elem.attrib.get('Номер')
+            list_dates.append(elem.attrib.get('Номер'))
+            #side = elem.attrib.get('L - R')
+            list_dates.append(elem.attrib.get('L - R'))
+            #front_back = elem.attrib.get('F - R')
+            list_dates.append(elem.attrib.get('F - R'))
+            #amount = elem.attrib.get('Количество')
+            list_dates.append(elem.attrib.get('Количество'))
+            #price = elem.attrib.get('Цена')
+            list_dates.append(elem.attrib.get('Цена'))
+            #availability = elem.attrib.get('Наличие')
+            list_dates.append(elem.attrib.get('Наличие'))
+            #direction = elem.attrib.get('Описание')
+            list_dates.append(elem.attrib.get('Описание'))
+            #new = elem.attrib.get('Новинка')
+            list_dates.append(elem.attrib.get('Новинка'))
+            #name_internet = elem.attrib.get('НаименованиеИнтернет')
+            list_dates.append(elem.attrib.get('НаименованиеИнтернет'))
+            #up_down = elem.attrib.get('ВерхНиз')
+            list_dates.append(elem.attrib.get('ВерхНиз'))
+            #transmission = elem.attrib.get('КПП')
+            list_dates.append(elem.attrib.get('КПП'))
+            #drive = elem.attrib.get('WD')
+            list_dates.append(elem.attrib.get('WD'))
+            #type_body = elem.attrib.get('ВидКузова')
+            list_dates.append(elem.attrib.get('ВидКузова'))
+            #synonim = elem.attrib.get('Синоним')
+            list_dates.append(elem.attrib.get('Синоним'))
+            #print(f"{id_in_1c}|{name}|{tab}|{brand}|{model}|{body}|{years}|{engine}|{state}|{producer}|{number}|{side}|{front_back}|{amount}|{price}|{availability}|{direction}|{new}|{name_internet}|{up_down}|{transmission}|{drive}|{type_body}|{synonim}")
+            if searchelemindatabase(id_in_1c) == True:
+                #print("Необходимо сделать UPDATE")
+                updateindatabaserow(connection, cursor, list_dates)
+            else:
 
-    return {"result": "Данные обновлены"}
+                print("Необходимо сделать INSERT")
+                print(list_dates)
+                insertintodatabasenewrow(connection, cursor, list_dates)
+
+        return {"result": "Данные обновлены"}
+    except Exception as e:
+        return {"result": f"Произошла ошибка: {e}"}
 
 
 # Ручка для формирования прайс-листа Дром

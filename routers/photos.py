@@ -41,6 +41,9 @@ class photosPydantic(BaseModel):
 def scan_folder_for_parsing():
     # Класс для логирования данных в GoogleSheets
     loggingooglesheets = class_logging_info_in_GoogleSheet()
+    # Переменная для обновления данных
+    massimages = [0, 0, 0, 0, 0]
+
     # Проверка наличия фотографий
     # Если папок для разбора нет
     if os.listdir(pathsfiles.mainpathanalysis) == []:
@@ -75,6 +78,7 @@ def scan_folder_for_parsing():
                 # Если папка не пуста
                 else:
                     numberfolder = 1
+
                     for elem in nextlist:
                         # Обыгрывание Thumbs.db
                         if elem == "Thumbs.db":
@@ -89,14 +93,18 @@ def scan_folder_for_parsing():
                                 # Уменьшение веса и подгонка фотографии
                                 convertimage(pathimage)
                                 # Функция выяснения данных о фотографии
-                                dateimage = loggingooglesheets.select_dates_from_photo(pathimage)
+                                imagecreator = loggingooglesheets.select_dates_from_photo(pathimage)
                                 # Функции записи данных в Google Sheets
-                                loggingooglesheets.logging_dates_from_photo(dateimage)
-                                loggingooglesheets.logging_dates_from_photo2(dateimage)
+                                #loggingooglesheets.logging_dates_from_photo(dateimage)
+                                #loggingooglesheets.logging_dates_from_photo2(dateimage)
+                                #loggingooglesheets.logging_all_dates_from_photo(dateimage)
                                 # Переименование и загрузка фотографии
                                 renameanduploadimage(pathimage, numberfolder)
-                                # Увеличиваем счётчик
+                                # Увеличиваем счётчик папки
                                 numberfolder = numberfolder + 1
+                    #print(f"Количество фотографий в папке: {len(nextlist)}")
+                    #print(f"Данные о владельце: {imagecreator}")
+                    loggingooglesheets.logging_all_dates_from_photo(imagecreator, len(nextlist))
             # Отчищаем папку
             os.rmdir(pathfolder)
         # Отправляем данные
@@ -234,57 +242,68 @@ def comparison_folders():
             summary="Сравнение двух файлов между собой (сопоставление картинок)",
             response_model=photosPydantic)
 def picture_matching(firstpath, secondpath):
-    print(f"Работаем с файлами: [{firstpath}] и [{secondpath}]")
+    #print(f"Работаем с файлами: [{firstpath}] и [{secondpath}]")
 
-    # Проверка на существование файла
-    if os.path.isfile(firstpath) and os.path.isfile(secondpath):
+    try:
+        # Проверка на существование файла
+        if os.path.isfile(firstpath) and os.path.isfile(secondpath):
 
-        # Чтение файла в байтовый массив
-        img_array1 = np.fromfile(firstpath, dtype=np.uint8)
-        img_array2 = np.fromfile(secondpath, dtype=np.uint8)
-        # Декодирование массива в изображение OpenCV
-        image1 = cv2.imdecode(img_array1, cv2.IMREAD_GRAYSCALE)
-        image2 = cv2.imdecode(img_array2, cv2.IMREAD_GRAYSCALE)
+            # Чтение файла в байтовый массив
+            img_array1 = np.fromfile(firstpath, dtype=np.uint8)
+            img_array2 = np.fromfile(secondpath, dtype=np.uint8)
+            # Декодирование массива в изображение OpenCV
+            image1 = cv2.imdecode(img_array1, cv2.IMREAD_GRAYSCALE)
+            image2 = cv2.imdecode(img_array2, cv2.IMREAD_GRAYSCALE)
 
-        height1, width1 = image1.shape
-        print(f"Размеры файла [{firstpath}]: [{height1}]x[{width1}]")
-        height2, width2 = image2.shape
-        print(f"Размеры файла [{secondpath}]: [{height2}]x[{width2}]")
+            height1, width1 = image1.shape
+            #print(f"Размеры файла [{firstpath}]: [{height1}]x[{width1}]")
+            height2, width2 = image2.shape
+            #print(f"Размеры файла [{secondpath}]: [{height2}]x[{width2}]")
 
-        # Сравниваем казмеры картинок
-        if height1 == height2 and width1 == width2:
-            # Сравнение картинок
-            score, diff = ssim(image1, image2, full=True)
+            # Сравниваем казмеры картинок
+            if height1 == height2 and width1 == width2:
+                # Сравнение картинок
+                score, diff = ssim(image1, image2, full=True)
 
-            # Принятие решения
-            if score < 0.8:
-                print(f"Сходство меньше 80%: {score * 100:.2f}")
-                return photosPydantic(result=True,
-                                     text="Нужно менять картинку",
-                                     sameness=score * 100)
+                # Принятие решения
+                if score < 0.8:
+                    #print(f"Сходство меньше 80%: {score * 100:.2f}")
+                    return photosPydantic(result=True,
+                                         text="Нужно менять картинку",
+                                         sameness=score * 100)
+                else:
+                    #print(f"Сходство больше 80%: {score * 100:.2f}")
+                    return photosPydantic(result=False,
+                                         text="Не нужно менять картинку",
+                                         sameness=score * 100)
             else:
-                #print(f"Сходство больше 80%: {score * 100:.2f}")
                 return photosPydantic(result=False,
-                                     text="Не нужно менять картинку",
-                                     sameness=score * 100)
+                                      text="Размеры картинок разные")
         else:
             return photosPydantic(result=False,
-                                  text="Размеры картинок разные")
-    else:
-        return photosPydantic(result=False,
-                             text="Один из файлов не существует")
+                                 text="Один из файлов не существует")
+    except Exception:
+        photosPydantic(result=False,
+                       text=f"Ошибка: {Exception}")
 
 # Ручка для замены старых картинок на новых
 # Два входных аргумента:
 #   Путь к первой папке
 #   Путь к второй папке
 @photos.get("/replacingimages",
-            summary="Замена старых фоторграфий на новые",
+            summary="Замена старых фотографий на новые",
             response_model=photosPydantic)
 def replacing_images(firstpath, secondpath):
     # Получение всех папок
-    #print(f"Получение всех файлов в первой папке{os.listdir(firstpath)}")
-    #print(f"Получение всех файлов в второй папке{os.listdir(secondpath)}")
+    print(f"Получение всех файлов в первой папке {len(os.listdir(firstpath))}")
+    print(f"Получение всех файлов в второй папке {len(os.listdir(secondpath))}")
+
+    if len(os.listdir(firstpath)) > len(os.listdir(secondpath)):
+        list = zip(os.listdir(firstpath), os.listdir(secondpath))
+        print("Разница 1-2:")
+    else:
+        list = zip(os.listdir(secondpath), os.listdir(firstpath))
+        print("Разница 2-1:")
 
     path1cfolder = pathsfiles.main1cfolder
     pathsitefolder = pathsfiles.sitefolder
@@ -292,11 +311,12 @@ def replacing_images(firstpath, secondpath):
     #print(f"Получение всех файлов в первой папке по нужному пути{os.listdir(path1cfolder)[:-2]}")
     #print(f"Получение всех файлов в второй папке по нужному пути{os.listdir(pathsitefolder)}")
 
-    for local, remote in tqdm(zip(os.listdir(firstpath), os.listdir(secondpath))):
+    for local, remote in tqdm(list):
         newfirstpath = firstpath + "/" + local
         newsecondpath = secondpath + "/" + remote
         comparison = picture_matching(newfirstpath, newsecondpath)
-        #if comparison.sameness < 0.8
-        print(f"Файл [{local}] совпадает с [{remote}] совпадает на: [{comparison.sameness}]")
+        if comparison.result == True:
+            print(f"Файл [{newfirstpath}] совпадает с [{newsecondpath}] совпадает на: [{comparison.sameness}]")
 
     return photosPydantic(result=True)
+

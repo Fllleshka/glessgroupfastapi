@@ -138,26 +138,72 @@ class class_logging_info_in_GoogleSheet:
                         'cell_in_table': allsotr.noneuser.dateforsheets}
 
     # Функция записи данных в Google Sheets
-    def logging_dates_from_photo(self, dates):
+    def logging_dates_from_photo(self, countimages):
         try:
+            # Получаем сегодняшнюю дату
+            today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
+            # Получаем последнюю ячейку в столбце F
+            laststr = len(self.worksheetlogsphotos.col_values(1))
+            lastvalue = self.worksheetlogsphotos.get('A' + str(laststr))
+            # Новая строка
+            newstr = int(laststr) + 1
+            # Получение данных из ячейки
+            olddatefromcell = self.worksheetlogsphotos.get('D' + str(laststr))
+            # Новые данные по столбцу D
+            newdatefromcell = int(olddatefromcell[0][0]) + countimages
+
+            '''
+            print(f"today: {today}")
+            print(f"laststr: {laststr}")
+            print(f"newstr: {newstr}")
+            print(f"lastvalue: {lastvalue}")
+            print(f"olddatefromcell: {olddatefromcell[0][0]}")
+            print(f"countimages: {countimages}")
+            print(f"newdatefromcell: {newdatefromcell}")
+            '''
+
+            # Обновляем данные
+            # Добавляем строку в конец файла логирования
+            self.worksheetlogsphotos.update_cell(newstr, 1, newstr)
+            self.worksheetlogsphotos.update_cell(newstr, 2, today)
+            self.worksheetlogsphotos.update_cell(newstr, 3, countimages)
+            self.worksheetlogsphotos.update_cell(newstr, 4, newdatefromcell)
+
+            '''
+            # Получаем данные с листа
+            dates = worksheet.get_values()
+            # Получаем номер самой последней строки
+            newstr = len(worksheet.col_values(1)) + 1
+            # Вычисляем номер строки
+            newnumber = newstr - 1
+            # Определяем время выполения операции
+            today = datetime.datetime.today().strftime("%d.%m.%Y | %H:%M:%S")
+            # Добавляем строку в конец файла логирования
+            worksheet.update_cell(newstr, 1, newnumber)
+            worksheet.update_cell(newstr, 2, today)
+            worksheet.update_cell(newstr, 3, lenphotos)
             #  Получение данных из ячейки
             olddatefromcell = self.worksheetlogsphotos.get_values(dates.get('cell_in_table'))
             olddate = int(olddatefromcell[0][0])
             newdate = olddate + 1
             self.worksheetlogsphotos.update_acell(dates.get('cell_in_table'), newdate)
             return True
+            '''
         except Exception:
             return Exception
 
     # Вставка данных в таблицу
-    def insertdates2(self, cell):
+    def insertdates2(self, cell, countimages):
         try:
             # Получаем данные
             value = self.worksheetlogsphotos.get_values(cell)
+            print(f"Данные в ячейке {cell}: {value}\t{type(value[0])}")
+            print(f"Переданные данные {countimages}")
+
             if not value[0]:
-                newvalue = 1
+                newvalue = countimages
             else:
-                newvalue = int(value[0][0]) + 1
+                newvalue = int(value[0][0]) + countimages
             self.worksheetlogsphotos.update_acell(cell, newvalue)
             self.worksheetlogsphotos.format(cell, colorsforbuttons.borders)
             return True
@@ -165,52 +211,69 @@ class class_logging_info_in_GoogleSheet:
             return False
 
     # Функция записи данных внизу в Google Sheets
-    def logging_dates_from_photo2(self, dates):
+    def logging_dates_from_photo2(self, creator, countimages):
+        today = datetime.datetime.today().strftime("%d.%m.%Y")
+        # Получаем последнюю ячейку в столбце F
+        laststrF = len(self.worksheetlogsphotos.col_values(6))
+        lastvalue = self.worksheetlogsphotos.get('F' + str(laststrF))
+        # Если за сегодня есть данные, добавляем
+        if today == str(lastvalue[0][0]):
+            # Выбираем нужную ячейку
+            match creator['fio']:
+                case allsotr.fleysner.shortname:
+                    cell = 'G' + str(laststrF)
+                    # Записываем данные в ячейку
+                    self.insertdates2(cell, countimages)
+                    return True
+                case allsotr.ivanov.shortname:
+                    cell = 'J' + str(laststrF)
+                    # Записываем данные в ячейку
+                    self.insertdates2(cell, countimages)
+                    return True
+                case allsotr.kireev.shortname:
+                    cell = 'H' + str(laststrF)
+                    # Записываем данные в ячейку
+                    self.insertdates2(cell, countimages)
+                    return True
+                case allsotr.pushcar.shortname:
+                    cell = 'I' + str(laststrF)
+                    # Записываем данные в ячейку
+                    self.insertdates2(cell, countimages)
+                    return True
+                case _:
+                    return False
+
+        # Создаём новую строку
+        else:
+            # Вставляем сегодняшнюю дату
+            newstr = laststrF + 1
+            self.worksheetlogsphotos.update_cell(newstr, 6, today)
+            # Окантовка ячеек
+            for elem in ['F', 'G', 'H', 'I', 'J']:
+                cell = elem + str(newstr)
+                self.worksheetlogsphotos.format(cell,
+                                                colorsforbuttons.borders)
+            self.insertdates2(cell, countimages)
+
+    def logging_all_dates_from_photo(self, creator, countimages):
         try:
-            # Получение числа сегодня
-            # Определяем время выполнения операции
-            today = datetime.datetime.today().strftime("%d.%m.%Y")
-            # Получаем последнюю ячейку в столбце F
-            laststrF = len(self.worksheetlogsphotos.col_values(6))
-            lastvalue = self.worksheetlogsphotos.get('F' + str(laststrF))
-            # Если за сегодня есть данные, добавляем
-            if today == str(lastvalue[0][0]):
-                # Выбираем нужную ячейку
-                match dates['fio']:
-                    case allsotr.fleysner.shortname:
-                        cell = 'G' + str(laststrF)
-                        # Записываем данные в ячейку
-                        self.insertdates2(cell)
-                        return True
-                    case allsotr.ivanov.shortname:
-                        cell = 'J' + str(laststrF)
-                        # Записываем данные в ячейку
-                        self.insertdates2(cell)
-                        return True
-                    case allsotr.kireev.shortname:
-                        cell = 'H' + str(laststrF)
-                        # Записываем данные в ячейку
-                        self.insertdates2(cell)
-                        return True
-                    case allsotr.pushcar.shortname:
-                        cell = 'I' + str(laststrF)
-                        # Записываем данные в ячейку
-                        self.insertdates2(cell)
-                        return True
-                    case _:
-                        return False
-            # Создаём новую строку
-            else:
-                newstr = laststrF + 1
-                self.worksheetlogsphotos.update_cell(newstr, 6, today)
-                # Окантовка ячеек
-                for elem in ['F', 'G', 'H', 'I', 'J']:
-                    cell = elem + str(newstr)
-                    self.worksheetlogsphotos.format(cell, colorsforbuttons.borders)
-                self.logging_dates_from_photo2(dates)
-                return True
+            # Получение данных из ячейки о Количестве загруженных фотографий
+            olddatefromcell = self.worksheetlogsphotos.get_values(creator.get('cell_in_table'))
+            # Преобразование данных в целочисленной тип данных
+            olddate = int(olddatefromcell[0][0])
+            # Добавление данных о количестве фотографии в папке
+            newdate = olddate + countimages
+            # Запись данных в верхнюю ячейку (H2 - H6)
+            #self.worksheetlogsphotos.update_acell(creator.get('cell_in_table'),newdate)
+
+            # Работа с блоком F27-J27 и всё что ниже
+            #self.logging_dates_from_photo2(creator, countimages)
+            # Работа с блоком A1-D1 и всё что ниже
+            self.logging_dates_from_photo(countimages)
+
         except Exception:
             return Exception
+
 
 # Класс оповещения в телеграмм боте
 class send_message_telegram_bot:

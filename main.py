@@ -30,7 +30,8 @@ app = FastAPI(
     title="GlessGroup FastApi",
     description="Документация для сервиса GlessGroup.",
     version="1.0.0",
-    docs_url="/documentaion"
+    docs_url="/documentaion",
+    flavicon=""
 )
 app.mount("/static", StaticFiles(directory = "static"), name = "static")
 
