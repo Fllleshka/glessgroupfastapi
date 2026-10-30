@@ -1,5 +1,4 @@
 import os.path
-import sqlite3
 import datetime
 import xml.etree.ElementTree
 from lxml import etree
@@ -7,13 +6,11 @@ import tqdm
 # Импорт основной библиотеки FastAPI
 from fastapi import APIRouter
 # Импорт данных путей к файлам
-from dates import pathsfiles
 # Импорт функции для поиска данных в базе
 from functions.database import *
 # Импорт библиотеки для создания файлов xml
 import xml.etree.ElementTree as ET
 # Импорт валидатора данных (pydantic)
-from pydantic import BaseModel
 # Импорт функций для генерации прайс-листов
 from functions.exportfiles import insertdatesinxmldrom
 from functions.exportfiles import insertdatesinxmlavito

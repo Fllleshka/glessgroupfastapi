@@ -41,14 +41,14 @@ def checkupdatedatesexcel():
 def importdatesformexcel(path, password):
     # Экземпляр COM обьекта
     xlApp = win32com.client.Dispatch("Excel.Application", pythoncom.CoInitialize())
-    # Открываем фаил
+    # Открываем файл
     xlwb = xlApp.Workbooks.Open(path, False, True, None, password)
     # Выбираем лист(таблицу)
     sheet = xlwb.ActiveSheet
     # Выбираем данные из range
     alldates = sheet.Range("B1:B451")
 
-    # Выясняем текущий мясяц
+    # Выясняем текущий месяц
     today = datetime.datetime.today()
     todayyear = int(today.strftime("%Y"))
     listmontheng = [datetime.date(todayyear, 1, 1).strftime("%B"),

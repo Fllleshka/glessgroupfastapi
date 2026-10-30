@@ -3,7 +3,6 @@ import time
 
 from fastapi import APIRouter
 # Библиотека для логирования
-import logging
 # Импорт библиотеки для работы с файлами
 import os
 # Библиотека для работы с браузером
@@ -13,7 +12,6 @@ from selenium.webdriver.common.by import By
 # Импорт класса для работы с Дром
 from dates import datesfordrom
 # Импорт класса для оповещения отвественных
-from functions.logger import send_message_telegram_bot
 # Импорт функций для работы с cookies
 from functions.selenium_drom import *
 # Объявления роутер для работы с AvitoAPI

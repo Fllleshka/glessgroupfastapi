@@ -10,9 +10,9 @@ import datetime
 # Импорт данных
 from dates import allsotr, beeline, datesforexcelfiles
 # Импорт вспомогательных функций работы с Excel
-from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
+#from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
 # Импорт функций логгирования
-from functions.logger import class_logging_info_in_GoogleSheet
+#from functions.logger import class_logging_info_in_GoogleSheet
 # Объявления роутер колл центра
 call_center = APIRouter()
 
@@ -20,7 +20,7 @@ call_center = APIRouter()
 # Принимаем короткий номер сотрудника
 @call_center.get("/inclusion/{user_id}", summary="Включение сотрудника в call центре")
 def online_user_call_center(user_id: str):
-    logging.info(f"Вызван метод [Включение сотрудника в call центре]: {user_id}")
+    logging.info(f"Вызван метод [Включение сотрудника в call центре]. Параметр входной: {user_id}")
 
     # Поиск id в массиве коротких номеров менеджеров
     if user_id in allsotr.numbermanagers:
@@ -69,6 +69,7 @@ def offline_user_call_center(user_id: str):
         return {"result": "Пользователь не найден",
                 "data": "Такого номера нету в Базе Данных"}
 
+'''
 # Ручка получения актуальных данных из файла Excel
 # Без входных аргументов
 @call_center.get("/receivingdatesfromexcel", summary="Получение данных из Excel")
@@ -134,3 +135,4 @@ def update_excel_file():
     return {
         "result": text,
         "data": flag}
+'''

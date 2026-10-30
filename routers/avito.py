@@ -1,7 +1,6 @@
 # Импорт основной библиотеки FastAPI
 from fastapi import APIRouter
 # Библиотека для логгирования
-import logging
 # Импорт библиотеки для выполнения запросов
 import requests
 # Импорт библиотеки для работы с json
