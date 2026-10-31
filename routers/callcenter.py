@@ -11,7 +11,7 @@ import datetime
 from dates import allsotr, beeline, datesforexcelfiles
 # Импорт вспомогательных функций работы с Excel
 #from functions.excel import importdatesformexcel, chosedates, checkupdatedatesexcel
-# Импорт функций логгирования
+# Импорт функций логирования
 #from functions.logger import class_logging_info_in_GoogleSheet
 # Объявления роутер колл центра
 call_center = APIRouter()
@@ -29,16 +29,20 @@ def online_user_call_center(user_id: str):
         # Попытка включения
         try:
             requests.put(urlforapi, params = beeline.paramsonline, headers = beeline.headers)
-            # Возвращаем актуальный статус
+            # Делаем запрос к API
             statusget = requests.get(urlforapi, headers=beeline.headers)
+            logging.info(f"Выполнение запроса успешно. Статус результата обращения к API:{statusget.text}")
+            # Возвращаем актуальный статус
             return {
                 "result": f"Статус менеджера: {user_id} изменён. Статус сейчас: {statusget.text}",
                 "data": "ONLINE"}
-        except Exception:
+        except Exception as e:
+            logging.info(f"Выполнение запроса завершилось с ошибкой:{str(e)}")
             return {
                 "result": "Попытка включения завершилась ошибкой",
-                "data": Exception}
+                "data": str(e)}
     else:
+        logging.info(f"Выполнение не может быть завершено. Пользователя: {user_id} не существует в данной системе")
         # Возврат если не верно указан короткий номер пользователя
         return {"result": "Пользователь не найден",
                 "data": "Такого номера нету в Базе Данных"}

@@ -60,6 +60,6 @@ def mainapp() -> FastAPI:
 
     return app
 if __name__ == "__main__":
-    # Запускаем Uvicorn сервер
+    # Запускаем uvicorn сервер
     uvicorn.run("main:mainapp", factory = True, reload = True)
 
