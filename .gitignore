@@ -1,0 +1,32 @@
+# Секреты и настройки — только локально и на сервере
+.env
+dates.py
+
+# Виртуальные окружения
+.venv*/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Логи и файлы, которые приложение создаёт само
+logs/
+static/
+exportfiles/
+screenshots/
+*.sqlite3
+*.db
+*.pkl
+
+# Тестовые Excel-файлы (в них реальные графики сотрудников)
+routers/tests/files/
+
+# macOS
+.DS_Store
+
+# PyCharm: личные настройки (общие файлы .idea остаются в git)
+.idea/workspace.xml
+.idea/dictionaries/
+.idea/shelf/
