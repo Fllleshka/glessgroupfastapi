@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 # Импорт локального веб сервера
 import uvicorn
-
+# Импорт библиотеки для работы с env
+import os
 
 # Импорт lifespan
-from functions.startfunctions import lifespan, createdirs
+from functions.startfunctions import lifespan, createdirs, staticdir
 # Импорт роутера для проверки доступности сервиса
 from routers.checkstatus import check_status
 # Импорт роутера для call центра
@@ -50,16 +51,25 @@ def mainapp() -> FastAPI:
         title="GlessGroup FastApi",
         description="Документация для сервиса GlessGroup.",
         version="1.1.0",
-        docs_url="/documentaion",
+        docs_url="/documentation",
         lifespan=lifespan)
 
-    app.mount("/static", StaticFiles(directory = "static"), name = "static")
+    app.mount("/static", StaticFiles(directory = staticdir), name = "static")
 
     # Прописываем роутеры
     routers(app)
 
     return app
 if __name__ == "__main__":
+    # Прописываем порт
+    port = int(os.environ.get("HTTP_PLATFORM_PORT") or os.environ.get("PORT") or 8000)
+    # Прописываем перезапуск
+    reload = os.environ.get("RELOAD") == "1"
     # Запускаем uvicorn сервер
-    uvicorn.run("main:mainapp", factory = True, reload = True)
-
+    uvicorn.run("main:mainapp",
+                factory = True,
+                host = "127.0.0.1",
+                port=port,
+                reload=reload,
+                proxy_headers=True,
+                forwarded_allow_ips="127.0.0.1")

@@ -4,8 +4,10 @@ import logging
 from pathlib import Path
 # Библиотека для создания асинхронного контекст менеджера
 from contextlib import asynccontextmanager
-
+# Библиотека для работы с FastAPI
 from fastapi import FastAPI
+
+from database.init import init_database, close_database
 
 # Определяем корень проекта
 basedir = Path(__file__).resolve().parent.parent
@@ -13,13 +15,15 @@ basedir = Path(__file__).resolve().parent.parent
 logsdir = basedir / "logs"
 # Путь к папке со статичными файлами
 staticdir = basedir / "static"
+# Путь к папке с базами данных
+databasedir = basedir / "databasedata"
 # Обьявлем логгер для записи логов
 logger = logging.getLogger(__name__)
 
 
 # Функция создания папок
 def createdirs() -> None:
-    massfolders = [logsdir, staticdir]
+    massfolders = [logsdir, staticdir, databasedir]
     for folder in massfolders:
         folder.mkdir(parents=True, exist_ok=True)
 
@@ -53,9 +57,12 @@ async def lifespan(app: FastAPI):
     createdirs()
     # Настраиваем логирование
     createlogging()
-
+    # Инициализируем подключение к базе данных
+    init_database()
     logger.info("Старт приложения")
 
     yield
 
+    close_database()
     logger.info("Приложение остановлено")
+
