@@ -14,4 +14,3 @@ def init_database() -> None:
 def close_database() -> None:
     usersdatabaseengine.dispose()
     productsdatabaseengine.dispose()
-

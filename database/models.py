@@ -7,10 +7,12 @@ class Users(UsersBase):
     __tablename__ = "users"
     # id
     id: Mapped[int] = mapped_column(primary_key = True)
+    # Ключ (чтобы при изменении .env не было дублирования данных)
+    key: Mapped[str] = mapped_column(String(50), unique = True, index = True)
     # Имя
     firstname: Mapped[str] = mapped_column(String(100))
     # Фамилия
-    lastname: Mapped[str] = mapped_column(String(100))
+    secondname: Mapped[str] = mapped_column(String(100))
     # Отчество
     patronymic: Mapped[str] = mapped_column(String(100))
     # Короткое ФИО
@@ -18,13 +20,13 @@ class Users(UsersBase):
     # Полное имя
     fullname: Mapped[str] = mapped_column(String(150))
     # Коротки номер Beeline
-    shortnumber: Mapped[int] = mapped_column(Integer, default = None)
+    shortnumber: Mapped[int | None] = mapped_column(Integer)
     # SID в системе (идентификатор win32, дается при установке windows)
-    idinwindows: Mapped[str] = mapped_column(String(200), default = None)
+    sid: Mapped[str | None] = mapped_column(String(200))
     # Массив ячеек для заполнения в googlesheets
-    dateforsheets: Mapped[str] = mapped_column(String(20), default = None)
+    dateforsheets: Mapped[str | None] = mapped_column(String(20))
     # ID в телеграмме
-    idintelegram: Mapped[str] = mapped_column(BigInteger, default = None)
+    telegramid: Mapped[int | None] = mapped_column(BigInteger)
 
 class Products(ProductsBase):
     __tablename__ = "products"
