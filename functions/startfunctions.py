@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from database.init import init_database, close_database
+from database.insertintables import initusers
 
 # Определяем корень проекта
 basedir = Path(__file__).resolve().parent.parent
@@ -17,7 +18,7 @@ logsdir = basedir / "logs"
 staticdir = basedir / "static"
 # Путь к папке с базами данных
 databasedir = basedir / "databasedata"
-# Обьявлем логгер для записи логов
+# Объявляем логгер для записи логов
 logger = logging.getLogger(__name__)
 
 
@@ -51,14 +52,18 @@ def createlogging() -> None:
     root.addHandler(file_handler)
     root.addHandler(console_handler)
 
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Создаем папки
     createdirs()
     # Настраиваем логирование
     createlogging()
-    # Инициализируем подключение к базе данных
+    # Создаем базы
     init_database()
+    # Импортируем данные из .env
+    initusers()
     logger.info("Старт приложения")
 
     yield
