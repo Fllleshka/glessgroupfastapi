@@ -30,3 +30,6 @@ routers/tests/files/
 .idea/workspace.xml
 .idea/dictionaries/
 .idea/shelf/
+
+# Служебная папка для сертификатов на Windows Server
+.well-known/
