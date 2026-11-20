@@ -1,0 +1,52 @@
+# Деплой GlessGroup API на IIS (Windows Server 2022, сайт glessapi).
+#
+# Запускается:
+#   - при push в master — после успешных тестов;
+#   - вручную: Actions → Deploy → Run workflow.
+#
+# Деплой выполняет self-hosted раннер на сервере (метка glessapi).
+# На pull_request не запускается: чужой код не должен попадать на сервер.
+
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-glessapi
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Тесты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest routers/tests -q
+
+  deploy:
+    name: Обновление API на IIS
+    needs: test
+    runs-on: [self-hosted, windows, glessapi]
+    environment:
+      name: production
+      url: https://apigless.gless.group/documentation
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Деплой
+        shell: powershell
+        run: |
+          .\deploy\deploy.ps1 -Commit "${{ github.sha }}"
+          exit $LASTEXITCODE
