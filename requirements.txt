@@ -8,6 +8,9 @@ pydantic==2.11.7
 python-dotenv==1.1.1
 requests==2.32.5
 
+# Работа с базой данных
+SQLAlchemy==2.0.43
+
 # Call-центр: чтение графика из Excel (functions/excel.py)
 openpyxl==3.1.5
 msoffcrypto-tool==6.0.0
