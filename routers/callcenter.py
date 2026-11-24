@@ -1,13 +1,18 @@
 # Импорт основной библиотеки FastAPI
-from fastapi import APIRouter
+import requests
+from fastapi import APIRouter, Depends, HTTPException
 # Библиотека для логгирования
 import logging
-# Библиотека для работы с HTTP запросами
-import requests
-# Библиотека работы с датой и временем
-import datetime
+# Модуль для работы с сесией базы данных
+from sqlalchemy.orm import Session
 
-# Импорт данных
+
+# Импорт данных из базы
+from database.repository import get_manager_by_shortnumber
+from database.engine import get_users_session
+# Импорт модуля выполнения запросов к API Beeline
+from services.beeline import set_agent_status
+
 #from dates import allsotr, beeline
 # Импорт вспомогательных функций работы с Excel
 #from functions.excel import importdatesformexcel
@@ -17,68 +22,60 @@ import datetime
 #from functions.excel import writecopyfile
 # Импорт функций логирования
 #from functions.logger import class_logging_info_in_GoogleSheet
+# Модель возврата результата
+from schemas.modelresponse import CallCenterResponse
+
 # Объявления роутер колл центра
 call_center = APIRouter()
-
-'''
+# Объявление логгера
+logger = logging.getLogger(__name__)
 
 # Ручка для включения сотрудника в колл центре
 # Принимаем короткий номер сотрудника
-@call_center.get("/inclusion/{user_id}", summary="Включение сотрудника в call центре")
-def online_user_call_center(user_id: str):
-    logging.info(f"Вызван метод [Включение сотрудника в call центре]. Параметр входной: {user_id}")
+@call_center.get("/inclusion/{user_id}", response_model= CallCenterResponse, summary="Включение сотрудника в call центре")
+def online_user_call_center(user_id: int, session: Session = Depends(get_users_session)):
+    logger.info(f"Вызван метод [Включение сотрудника в call центре]. Параметр входной: {user_id}")
 
-    # Поиск id в массиве коротких номеров менеджеров
-    if user_id in allsotr.numbermanagers:
-        # Запрос статуса во внешнем API
-        urlforapi = beeline.urlapi + user_id + '/agent'
-        # Попытка включения
-        try:
-            requests.put(urlforapi, params = beeline.paramsonline, headers = beeline.headers)
-            # Делаем запрос к API
-            statusget = requests.get(urlforapi, headers=beeline.headers)
-            logging.info(f"Выполнение запроса успешно. Статус результата обращения к API:{statusget.text}")
-            # Возвращаем актуальный статус
-            return {
-                "result": f"Статус менеджера: {user_id} изменён. Статус сейчас: {statusget.text}",
-                "data": "ONLINE"}
-        except Exception as e:
-            logging.info(f"Выполнение запроса завершилось с ошибкой:{str(e)}")
-            return {
-                "result": "Попытка включения завершилась ошибкой",
-                "data": str(e)}
-    else:
-        logging.info(f"Выполнение не может быть завершено. Пользователя: {user_id} не существует в данной системе")
-        # Возврат если не верно указан короткий номер пользователя
-        return {"result": "Пользователь не найден",
-                "data": "Такого номера нету в Базе Данных"}
+    resultsearch = get_manager_by_shortnumber(session, user_id)
+
+    if resultsearch is None:
+        logger.info(f"Выполнение не может быть завершено. Пользователя: {user_id} не существует в данной системе")
+        raise HTTPException(status_code=404, detail="Такого номера нету в Базе Данных")
+    try:
+        # Включаем менеджера
+        agent_status = set_agent_status(user_id, "ONLINE")
+    except requests.RequestException as e:
+        logger.exception("Выполнение запроса завершилось с ошибкой.")
+        raise HTTPException(status_code=502,
+                            detail="Сервис Beeline недоступен. Статус не поменялся") from e
+    return CallCenterResponse(
+        result=True,
+        status=agent_status,
+        comment="Выполнено")
 
 # Ручка для выключения сотрудника в колл центре
 # Принимаем короткий номер сотрудника
-@call_center.get("/shutdown/{user_id}", summary="Выключение сотрудника в call центре")
-def offline_user_call_center(user_id: str):
-    logging.info(f"Вызван метод [Выключение сотрудника в call центре]: {user_id}")
-    # Поиск id в массиве коротких номеров менеджеров
-    if user_id in allsotr.numbermanagers:
-        # Запрос статуса во внешнем API
-        urlforapi = beeline.urlapi + user_id + '/agent'
-        # Попытка включения
-        try:
-            requests.put(urlforapi, params = beeline.paramoffline, headers = beeline.headers)
-            # Возвращаем актуальный статус
-            statusget = requests.get(urlforapi, headers=beeline.headers)
-            return {
-                "result": f"Статус менеджера: {user_id} изменён. Статус сейчас: {statusget.text}",
-                "data": "OFFLINE"}
-        except Exception:
-            return {
-                "result": "Попытка включения завершилась ошибкой",
-                "data": Exception}
-    else:
-        # Возврат если не верно указан короткий номер пользователя
-        return {"result": "Пользователь не найден",
-                "data": "Такого номера нету в Базе Данных"}
+@call_center.get("/shutdown/{user_id}", response_model = CallCenterResponse, summary="Выключение сотрудника в call центре")
+def offline_user_call_center(user_id: int, session: Session = Depends(get_users_session)):
+    logger.info(f"Вызван метод [Выключение сотрудника в call центре]. Параметр входной: {user_id}")
 
+    resultsearch = get_manager_by_shortnumber(session, user_id)
+
+    if resultsearch is None:
+        logger.info(f"Выполнение не может быть завершено. Пользователя: {user_id} не существует в данной системе")
+        raise HTTPException(status_code=404, detail="Такого номера нету в Базе Данных")
+    try:
+        # Выключаем менеджера
+        agent_status = set_agent_status(user_id, "OFFLINE")
+    except requests.RequestException as e:
+        logger.exception("Выполнение запроса завершилось с ошибкой.")
+        raise HTTPException(status_code=502,
+                            detail="Сервис Beeline недоступен. Статус не поменялся") from e
+    return CallCenterResponse(
+        result=True,
+        status=agent_status,
+        comment="Выполнено")
+'''
 # Ручка получения актуальных данных из файла Excel
 # Без входных аргументов
 @call_center.get("/receivingdatesfromexcel", summary="Получение данных из Excel")

@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, BigInteger, Text
+from sqlalchemy import String, Integer, BigInteger, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database.engine import UsersBase, ProductsBase
@@ -27,6 +27,8 @@ class Users(UsersBase):
     dateforsheets: Mapped[str | None] = mapped_column(String(20))
     # ID в телеграмме
     telegramid: Mapped[int | None] = mapped_column(BigInteger)
+    # Идентификатор call-центра
+    callcenter: Mapped[bool] = mapped_column(Boolean, default=False)
 
 class Products(ProductsBase):
     __tablename__ = "products"

@@ -26,7 +26,8 @@ envfields = {
     "SHORTNUMBER": "shortnumber",
     "SID": "sid",
     "DATEFORSHEETS": "dateforsheets",
-    "TELEGRAMID": "telegramid"
+    "TELEGRAMID": "telegramid",
+    "CALLCENTER": "callcenter"
 }
 
 # Функция импорта данных о сотрудниках из env
@@ -36,8 +37,6 @@ def readusersfromenv(environ: Mapping[str, str] = os.environ) -> list[dict[str, 
     for name, value in environ.items():
         if not name.startswith(envprefix):
             continue
-
-        # USER_IVANOV_PETR_FIRSTNAME → "IVANOV_PETR_FIRSTNAME" → ("IVANOV_PETR", "FIRSTNAME")
         rest = name.removeprefix(envprefix)
         key, sep, field = rest.rpartition("_")
 
@@ -68,6 +67,8 @@ class UserSeed(BaseModel):
     dateforsheets: str | None = Field(default=None, max_length=20)
     # ID в телеграмме
     telegramid: int | None = None
+    # Флаг отношения к call центру
+    callcenter: bool = False
 
     # Проверка полей до приведения типов
     @field_validator("shortnumber", "sid", "dateforsheets", "telegramid", mode="before")
@@ -76,6 +77,15 @@ class UserSeed(BaseModel):
         if isinstance(value, str) and not value.strip():
             return None
         return value
+
+    # Проверка поля call центр, для выборки
+    @field_validator('callcenter', mode="before")
+    @classmethod
+    def empty_callcenter_to_false(cls, value):
+        if isinstance(value, str) and not value.strip():
+            return False
+        return value
+
 
     # Вычисляем короткое ФИО
     @computed_field

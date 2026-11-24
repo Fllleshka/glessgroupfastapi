@@ -10,7 +10,7 @@ from functions.startfunctions import lifespan, createdirs, staticdir
 # Импорт роутера для проверки доступности сервиса
 from routers.checkstatus import check_status
 # Импорт роутера для call центра
-#from routers.callcenter import call_center
+from routers.callcenter import call_center
 '''
 # Импорт роутера для проверки актуальности файлов
 from routers.uptodatefiles import uptodatefiles
@@ -32,8 +32,8 @@ def routers(app: FastAPI) -> None:
 
     # Подключаем роутеры
     app.include_router(check_status, prefix="/api/v1", tags=["CheckStatus"])
-    '''
     app.include_router(call_center, prefix="/api/v1", tags=["CallCenter"])
+    '''
     app.include_router(uptodatefiles, prefix="/api/v1", tags=["UpToDatesFiles"])
     app.include_router(uptodatefilesin1c, prefix="/api/v1", tags=["UpToDatesFilesIn1C7.3"])
     app.include_router(database, prefix="/api/v1", tags=["DataBase"])
@@ -50,7 +50,7 @@ def mainapp() -> FastAPI:
     app = FastAPI(
         title="GlessGroup FastApi",
         description="Документация для сервиса GlessGroup.",
-        version="1.1.0",
+        version="1.2.0",
         docs_url="/documentation",
         lifespan=lifespan)
 

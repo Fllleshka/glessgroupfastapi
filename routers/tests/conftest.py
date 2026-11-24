@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 
 from main import mainapp
 
-collect_ignore = ["test_callcenter.py"]
 
 @pytest.fixture(scope="session")
 def app():

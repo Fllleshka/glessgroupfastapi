@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     )
 
     # Билайн
+    beeline_api_url: str = Field(validation_alias="BEELINEAPIURL")
     beeline_header_name: str = Field(validation_alias="BEELINEAPIHEADERMETOD")
     beeline_token: SecretStr = Field(validation_alias="BEELINEAPIHEADERTOKEN")
 
