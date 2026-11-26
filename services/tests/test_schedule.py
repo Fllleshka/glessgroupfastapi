@@ -1,13 +1,17 @@
+import io
+
 import pytest
 import openpyxl
 
-from services.schedule import MONTHS_RU, NAME_COLUMN
+from services.schedule import MONTHS_RU, NAME_COLUMN, ScheduleOpenError
 from services.schedule import normalize_name
 from services.schedule import find_month_row
 from services.schedule import normalize_mark
 from services.schedule import is_day_off
 from services.schedule import read_month_schedule
 from services.schedule import status_for_day
+from services.schedule import open_schedule
+from services.schedule import schedule_filename
 
 
 # Подготавливаем для теста таблицу
@@ -110,3 +114,27 @@ def test_read_month_schedule(sheet, month_row: int, name: str, expected: list[st
 ])
 def test_status_for_day(schedule, name: str, day: int, expected: str | None):
     assert status_for_day(schedule, name, day) == expected
+
+# Тест открытия валидного файла (бинарника)
+def test_open_schedule_valid_file():
+    workbook = openpyxl.Workbook()
+    workbook.active.cell(row=1, column=NAME_COLUMN, value="ЯНВАРЬ")
+    buff = io.BytesIO()
+    workbook.save(buff)
+    data = buff.getvalue()
+
+    sheet = open_schedule(data, None)
+
+    assert find_month_row(sheet, 1) == 1
+
+# Тест некорректного файла
+def test_open_schedule_invalid_file():
+    with pytest.raises(ScheduleOpenError):
+        open_schedule(b"wrong_way", None)
+
+# Тест названий файла по году
+@pytest.mark.parametrize("year,expected", [
+    (2022, "График OEM 2022.xlsx"),
+    (2027, "График OEM 2027.xlsx")])
+def test_schedule_filename(year: int, expected: str):
+    assert schedule_filename(year) == expected

@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # Google Sheets
     unknown_sheet_cell: str = Field(validation_alias="UNKNOWNSHEETCELL")
 
+    # График
+    smb_user: str = Field(validation_alias="FASTAPISMBUSER")
+    smb_password: SecretStr = Field(validation_alias="FASTAPISMBPASSWORD")
+    schedule_folder: str = Field(validation_alias="SCHEDULEFOLDER")
+    schedule_password: SecretStr = Field(validation_alias="EXCELPASSWORDMAINFILE")
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
