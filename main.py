@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 # Импорт локального веб сервера
 import uvicorn
@@ -50,7 +50,7 @@ def mainapp() -> FastAPI:
     app = FastAPI(
         title="GlessGroup FastApi",
         description="Документация для сервиса GlessGroup.",
-        version="1.3.0",
+        version="1.3.1",
         docs_url="/documentation",
         lifespan=lifespan)
 
