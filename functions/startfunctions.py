@@ -36,6 +36,9 @@ def createlogging() -> None:
         datefmt="%d-%b-%y %H:%M:%S",
     )
 
+    logging.getLogger("smbprotocol").setLevel(logging.WARNING)
+    logging.getLogger("smbclient").setLevel(logging.WARNING)
+
     # Настройка для файла
     file_handler = logging.FileHandler(logsdir / "fastapi.log", mode="a",
                                        encoding="utf-8")
