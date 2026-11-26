@@ -170,3 +170,11 @@ def read_schedule_bytes(year: int) -> bytes:
                 time.sleep(READ_DELAY)
             last_error = e
     raise ScheduleUnavailableError(f"Сетевой диск с графиком недоступен, попыток: {READ_ATTEMPTS}")from last_error
+
+# Сборка всего модуля в функцию
+def load_month_schedule(year: int, month: int) -> dict[str, list[str]]:
+    data = read_schedule_bytes(year)
+    password = get_settings().schedule_password.get_secret_value()
+    sheet = open_schedule(data, password)
+    month_row = find_month_row(sheet, month)
+    return read_month_schedule(sheet, month_row)

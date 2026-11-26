@@ -1,38 +1,48 @@
 # Импорт основной библиотеки FastAPI
-import requests
-from fastapi import APIRouter, Depends, HTTPException
-# Библиотека для логгирования
+from fastapi import APIRouter, Depends, HTTPException, Query
+# Библиотека для логирования
 import logging
-# Модуль для работы с сесией базы данных
+# Модуль для работы с сессией базы данных
 from sqlalchemy.orm import Session
+#  Модуль для работы со временем
+from datetime import date
+
+import requests
 
 
 # Импорт данных из базы
-from database.repository import get_manager_by_shortnumber
+from database.repository import get_manager_by_shortnumber, get_callcenter_managers
 from database.engine import get_users_session
 # Импорт модуля выполнения запросов к API Beeline
 from services.beeline import set_agent_status
-
-#from dates import allsotr, beeline
-# Импорт вспомогательных функций работы с Excel
-#from functions.excel import importdatesformexcel
-#from functions.excel import chosedates
-#from functions.excel import checkupdatedatesexcel
-#from functions.excel import readprotectedfile
-#from functions.excel import writecopyfile
-# Импорт функций логирования
-#from functions.logger import class_logging_info_in_GoogleSheet
+# Импорт модуля для работы с файлом графика (excel)
+from services.schedule import ScheduleNotFoundError, ScheduleUnavailableError, ScheduleOpenError, MonthNotFoundError
+from services.schedule import load_month_schedule, status_for_day
 # Модель возврата результата
-from schemas.modelresponse import CallCenterResponse
+from schemas.modelresponse import CallCenterResponse, ActivationResponse, ManagerStatusResult, ScheduleResponse
 
 # Объявления роутер колл центра
 call_center = APIRouter()
 # Объявление логгера
 logger = logging.getLogger(__name__)
 
+# Загружает график месяца и превращает ошибки графика в HTTP-ответы
+def get_schedule_or_http_error(year: int, month: int) -> dict[str, list[str]]:
+    try:
+        return load_month_schedule(year, month)
+    except (ScheduleNotFoundError, ScheduleUnavailableError) as e:
+        logger.exception("График недоступен")
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except ScheduleOpenError as e:
+        logger.exception("Не удалось открыть график")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    except MonthNotFoundError as e:
+        logger.exception("В графике нет нужного месяца")
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
 # Ручка для включения сотрудника в колл центре
 # Принимаем короткий номер сотрудника
-@call_center.get("/inclusion/{user_id}", response_model= CallCenterResponse, summary="Включение сотрудника в call центре")
+@call_center.post("/inclusion/{user_id}", response_model= CallCenterResponse, summary="Включение сотрудника в call центре")
 def online_user_call_center(user_id: int, session: Session = Depends(get_users_session)):
     logger.info(f"Вызван метод [Включение сотрудника в call центре]. Параметр входной: {user_id}")
 
@@ -55,7 +65,7 @@ def online_user_call_center(user_id: int, session: Session = Depends(get_users_s
 
 # Ручка для выключения сотрудника в колл центре
 # Принимаем короткий номер сотрудника
-@call_center.get("/shutdown/{user_id}", response_model = CallCenterResponse, summary="Выключение сотрудника в call центре")
+@call_center.post("/shutdown/{user_id}", response_model = CallCenterResponse, summary="Выключение сотрудника в call центре")
 def offline_user_call_center(user_id: int, session: Session = Depends(get_users_session)):
     logger.info(f"Вызван метод [Выключение сотрудника в call центре]. Параметр входной: {user_id}")
 
@@ -75,74 +85,55 @@ def offline_user_call_center(user_id: int, session: Session = Depends(get_users_
         result=True,
         status=agent_status,
         comment="Выполнено")
-'''
+
 # Ручка получения актуальных данных из файла Excel
 # Без входных аргументов
-@call_center.get("/receivingdatesfromexcel", summary="Получение данных из Excel")
-def receiving_dates_from_excel():
-    logging.info(f"Вызван метод [Получение данных из Excel]")
-
-    mainfile = readprotectedfile(datesforexcelfiles.pathmainfile, datesforexcelfiles.password)
-    writecopyfile(mainfile, datesforexcelfiles.pathfile)
-
-    try:
-        # Достаём данные из файла
-        datesnowmonth = importdatesformexcel(datesforexcelfiles.pathfile, datesforexcelfiles.password)
-        # Выбираем данные для работы с ними
-        massive = chosedates(datesnowmonth, allsotr)
-
-        return {
-            "result": "Данные из Excel получены успешно",
-            "data": "massive"}
-    except Exception:
-
-        return {
-            "result": "При получении данных произошла ошибка",
-            "data": Exception}
+@call_center.get("/receivingdatesfromexcel", response_model=ScheduleResponse, summary="Получение данных из Excel")
+def receiving_dates_from_excel(year: int | None = None, month: int | None = Query(default=None, ge=1, le=12)):
+    logger.info(f"Вызван метод [Получение данных из Excel]")
+    today = date.today()
+    year = year or today.year
+    month = month or today.month
+    schedule = get_schedule_or_http_error(year, month)
+    return ScheduleResponse(
+        year=year,
+        month=month,
+        schedule=schedule)
 
 # Ручка активации менеджеров на сегодня
 # Без входных аргументов
-@call_center.get("/activatemanagersonday", summary="Активация менеджеров на сегодня")
-def activate_managers_on_day():
-    logging.info(f"Вызван метод [Активация менеджеров на сегодня]")
+@call_center.post("/activatemanagersonday", response_model=ActivationResponse, summary="Активация менеджеров на сегодня")
+def activate_managers_on_day(session: Session = Depends(get_users_session)):
+    logger.info(f"Вызван метод [Активация менеджеров на сегодня]")
     # Выясняем текущий день
-    today = datetime.datetime.today()
-    todayday = int(today.strftime("%d"))
-    logging.info(f"Сегодня: {todayday} {today.strftime("%B")} {int(today.strftime("%Y"))}")
-    try:
-        dates = receiving_dates_from_excel()
-        # Пробегаемся по массиву менеджеров
-        for element in dates['data']:
-            if element[todayday] == "В" or element[todayday] == "O" or element[todayday] == "О" or element[todayday] == "Х":
-                numbermanager =  allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
-                logging.info(f"\t\tНеобходимо деактивировать телефон: {element[0]}\t [{element[todayday]}]\t {numbermanager}")
-                offline_user_call_center(numbermanager)
-            else:
-                numbermanager = allsotr.numbermanagers[allsotr.massmanagers_short.index(element[0])]
-                logging.info(f"\t\tНеобходимо активировать телефон: {element[0]}\t [{element[todayday]}]\t {numbermanager}")
-                online_user_call_center(numbermanager)
-        class_log = class_logging_info_in_GoogleSheet()
-        class_log.logging_update_call_center()
-        return {
-            "result": "Активация менеджеров на сегодня прошла успешно",
-            "data": True}
+    today = date.today()
 
-    except Exception:
-        return {
-            "result": "Активации менеджеров произошла ошибка",
-            "data": Exception}
+    # Получаем данные из файла
+    schedule = get_schedule_or_http_error(today.year, today.month)
 
-# Ручка для копирования файла для работы
-# Без входных аргументов
-@call_center.get("/updatingexcelfile", summary="Актуализация данных в файле Excel для работы")
-def update_excel_file():
-    logging.info(f"Вызван метод [Актуализация данных в файле Excel для работы]")
-    flag = checkupdatedatesexcel()
-    if flag == True:
-        text = "Актуализация данных в файле Excel для работы прошла успешно"
-    else:
-        text = "Актуализация файла не понадобилась"
-    return {
-        "result": text,
-        "data": flag}
-'''
+    results = []
+    not_in_schedule = []
+    for manager in get_callcenter_managers(session):
+        # Получаем статус менеджера
+        status = status_for_day(schedule, manager.shortname, today.day)
+        if status is None:
+            logger.warning(f"{manager.shortname} нет в графике")
+            not_in_schedule.append(manager.shortname)
+        else:
+            try:
+                set_agent_status(manager.shortnumber, status)
+                ok = True
+            except requests.RequestException:
+                logger.exception(f"Не удалось установить {status} для {manager.shortname}")
+                ok = False
+            results.append(ManagerStatusResult(
+                name=manager.shortname,
+                shortnumber=manager.shortnumber,
+                status=status,
+                ok = ok
+            ))
+    return ActivationResponse(
+        date=today,
+        results=results,
+        not_in_schedule=not_in_schedule
+    )

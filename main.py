@@ -50,7 +50,7 @@ def mainapp() -> FastAPI:
     app = FastAPI(
         title="GlessGroup FastApi",
         description="Документация для сервиса GlessGroup.",
-        version="1.2.0",
+        version="1.3.0",
         docs_url="/documentation",
         lifespan=lifespan)
 
