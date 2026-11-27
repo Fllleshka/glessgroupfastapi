@@ -1,25 +1,18 @@
 # Библиотека для работы с бинарниками
-import errno
 import io
-import time
-
-# Библиотека для открывания запароленных файлов
-import msoffcrypto
-from msoffcrypto.exceptions import FileFormatError, InvalidKeyError, DecryptionError
+import zipfile
+import logging
 # Библиотека для работы с файлами excel
 import openpyxl
+# Библиотека для открывания запароленных файлов
+import msoffcrypto
+
+from msoffcrypto.exceptions import FileFormatError, InvalidKeyError, DecryptionError
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.utils.exceptions import InvalidFileException
-import zipfile
-# Библиотека для получения файла по smb
-import smbclient
-
-import logging
-from pathlib import Path, PureWindowsPath
-
-from smbprotocol.exceptions import SMBOSError
-
+from pathlib import PureWindowsPath
 from config import get_settings
+from services.smb import read_smb_file, SmbFileNotFoundError, SmbUnavailableError
 
 MONTHS_RU = ("ЯНВАРЬ",
              "ФЕВРАЛЬ",
@@ -37,9 +30,7 @@ STOP_MARK = "ОБЩИЙ ИТОГ"
 OFF_MARKS = {"В", "О", "O", "0", "X", "Х"}
 NAME_COLUMN = 2
 FIRST_DAY_COLUMN = 3
-SMB_TIMEOUT = 10
-READ_ATTEMPTS = 3
-READ_DELAY = 3
+
 
 # Объявление логгера
 logger = logging.getLogger(__name__)
@@ -144,32 +135,19 @@ def status_for_day(schedule: dict, name: str, day: int) -> str | None:
 def schedule_filename(year:int) -> str:
     return f"График OEM {year}.xlsx"
 
-# Чтение файла excel
+# Чтение файла
 def read_schedule_bytes(year: int) -> bytes:
     # Импорт настроек
     settings = get_settings()
     # Составляем путь до файла
     full_path_to_file = str(PureWindowsPath(settings.schedule_folder) / schedule_filename(year))
-    # Читаем данные
-    for attempt in range(1, READ_ATTEMPTS + 1):
-        try:
-            with smbclient.open_file(full_path_to_file,
-                                mode = "rb",
-                                username = settings.smb_user,
-                                password = settings.smb_password.get_secret_value(),
-                                share_access = "rw",
-                                connection_timeout = SMB_TIMEOUT) as file:
-                return file.read()
-        except SMBOSError as e:
-            if e.errno == errno.ENOENT:
-                raise ScheduleNotFoundError(f"Файла {schedule_filename(year)} нет в папке.") from e
-            raise ScheduleUnavailableError("Сетевой диск недоступен или неверные логин и пароль") from e
-        except ValueError as e:
-            logger.warning(f"Предупреждение открытия файла {full_path_to_file} попытка {attempt} не удалась")
-            if attempt != READ_ATTEMPTS:
-                time.sleep(READ_DELAY)
-            last_error = e
-    raise ScheduleUnavailableError(f"Сетевой диск с графиком недоступен, попыток: {READ_ATTEMPTS}")from last_error
+
+    try:
+        return read_smb_file(full_path_to_file)
+    except SmbFileNotFoundError as e:
+        raise ScheduleNotFoundError(f"Файл графика на {year} год не найден") from e
+    except SmbUnavailableError as e:
+        raise ScheduleUnavailableError("Сетевой диск с графиком недоступен") from e
 
 # Сборка всего модуля в функцию
 def load_month_schedule(year: int, month: int) -> dict[str, list[str]]:

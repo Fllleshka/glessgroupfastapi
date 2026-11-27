@@ -167,7 +167,7 @@ def test_wrong_method_returns_405(client, url, status):
     assert response.status_code == 405
 
 # Тест активации менеджеров
-def test_activate_managers_with_no_manager(client, test_db, beeline_calls, monkeypatch):
+def test_activate_managers(client, test_db, beeline_calls, monkeypatch):
     monkeypatch.setattr(callcenter, "load_month_schedule", lambda year, month: FAKE_SCHEDULE)
 
     response = client.post("/api/v1/activatemanagersonday")
@@ -178,7 +178,7 @@ def test_activate_managers_with_no_manager(client, test_db, beeline_calls, monke
     assert body["not_in_schedule"] == []
 
 # Тест активации менеджеров человека нет в графике
-def test_activate_managers(client, test_db, beeline_calls, monkeypatch):
+def test_activate_managers_not_in_schedule(client, test_db, beeline_calls, monkeypatch):
     monkeypatch.setattr(callcenter, "load_month_schedule", lambda year, month: {"ИВАНОВ И.И.": ["9"] * 31})
 
     response = client.post("/api/v1/activatemanagersonday")

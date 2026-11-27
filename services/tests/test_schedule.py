@@ -2,8 +2,9 @@ import io
 
 import pytest
 import openpyxl
+from types import SimpleNamespace
 
-from services.schedule import MONTHS_RU, NAME_COLUMN, ScheduleOpenError
+from services.schedule import NAME_COLUMN, ScheduleOpenError
 from services.schedule import normalize_name
 from services.schedule import find_month_row
 from services.schedule import normalize_mark
@@ -12,6 +13,10 @@ from services.schedule import read_month_schedule
 from services.schedule import status_for_day
 from services.schedule import open_schedule
 from services.schedule import schedule_filename
+
+import services.schedule as schedule_module
+from services.schedule import read_schedule_bytes, ScheduleNotFoundError, ScheduleUnavailableError
+from services.smb import SmbFileNotFoundError, SmbUnavailableError
 
 
 # Подготавливаем для теста таблицу
@@ -138,3 +143,20 @@ def test_open_schedule_invalid_file():
     (2027, "График OEM 2027.xlsx")])
 def test_schedule_filename(year: int, expected: str):
     assert schedule_filename(year) == expected
+
+# Ошибки сетевого диска превращаются в ошибки графика
+@pytest.mark.parametrize("smb_error, schedule_error", [
+    (SmbFileNotFoundError, ScheduleNotFoundError),
+    (SmbUnavailableError, ScheduleUnavailableError),
+])
+def test_read_schedule_bytes_errors(monkeypatch, smb_error, schedule_error):
+    settings = SimpleNamespace(schedule_folder=r"\\server\share\folder")
+    monkeypatch.setattr(schedule_module, "get_settings", lambda: settings)
+
+    def broken_read_smb_file(path):
+        raise smb_error("тестовая ошибка")
+
+    monkeypatch.setattr(schedule_module, "read_smb_file", broken_read_smb_file)
+
+    with pytest.raises(schedule_error):
+        read_schedule_bytes(2026)
