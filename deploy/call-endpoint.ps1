@@ -13,6 +13,7 @@ $logFile = Join-Path $LogDir $logName
 $bodyFile = New-TemporaryFile
 
 $code = & curl.exe -sS -X POST --max-time $TimeoutSec `
+    -H "Content-Length: 0" `
     --resolve "${HostName}:443:127.0.0.1" `
     -o $bodyFile.FullName -w '%{http_code}' "https://$HostName$Path"
 $curlExit = $LASTEXITCODE
